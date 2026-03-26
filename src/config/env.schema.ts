@@ -10,4 +10,5 @@ export const envSchema = Joi.object({
   DB_NAME: Joi.string().default('io_card_issuer'),
   DB_USER: Joi.string().default('postgres'),
   DB_PASSWORD: Joi.string().allow('').default('postgres'),
+  DB_SYNCHRONIZE: Joi.boolean().default(false),
 });

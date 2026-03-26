@@ -9,5 +9,6 @@ export const appConfig = () => ({
     name: process.env.DB_NAME ?? 'io_card_issuer',
     user: process.env.DB_USER ?? 'postgres',
     password: process.env.DB_PASSWORD ?? 'postgres',
+    synchronize: process.env.DB_SYNCHRONIZE === 'true',
   },
 });
