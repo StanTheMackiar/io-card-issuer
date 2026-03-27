@@ -46,7 +46,15 @@ docker compose ps
 docker compose logs -f postgres
 ```
 
-### 4. Levantar ambas aplicaciones
+### 4. Correr las migraciones y levantar ambas aplicaciones
+
+Correr las migraciones
+
+```bash
+npm run migration:run
+```
+
+Levantar ambas aplicaciones
 
 ```bash
 npm run dev

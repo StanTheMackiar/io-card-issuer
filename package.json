@@ -18,7 +18,6 @@
     "start:processor": "nest start card-processor",
     "start:processor:dev": "nest start card-processor --watch",
     "lint": "eslint \"{apps,libs,scripts,test}/**/*.ts\" --fix",
-    "db:create": "node --env-file=.env --require ts-node/register --require tsconfig-paths/register scripts/create-database.ts",
     "migration:create": "node ./node_modules/typeorm/cli.js migration:create libs/shared/src/database/migrations",
     "migration:generate": "node --env-file=.env --require ts-node/register --require tsconfig-paths/register ./node_modules/typeorm/cli.js migration:generate libs/shared/src/database/migrations/auto -d libs/shared/src/database/data-source.ts",
     "migration:run": "node --env-file=.env --require ts-node/register --require tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run -d libs/shared/src/database/data-source.ts",
