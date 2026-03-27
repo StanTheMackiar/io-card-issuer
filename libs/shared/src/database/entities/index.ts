@@ -1,2 +1,2 @@
-export { CardEntity } from './card.entity';
-export { CardRequestEntity } from './card-request.entity';
+export { CardOrmEntity as CardEntity } from './card-orm.entity';
+export { CardRequestOrmEntity } from './card-request-orm.entity';

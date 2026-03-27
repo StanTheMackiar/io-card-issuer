@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { DataSourceOptions } from 'typeorm';
-import { CardEntity, CardRequestEntity } from './entities';
+import { CardEntity, CardRequestOrmEntity } from './entities';
 
 export type DatabaseConfig = {
   host: string;
@@ -33,7 +33,7 @@ export function buildDatabaseOptions(
     username: config.user,
     password: config.password,
     synchronize: config.synchronize,
-    entities: [CardRequestEntity, CardEntity],
+    entities: [CardRequestOrmEntity, CardEntity],
     migrations: [join(__dirname, 'migrations', '*{.ts,.js}')],
     migrationsTableName: 'typeorm_migrations',
   };

@@ -8,21 +8,21 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { CardStatus } from '../enums/card-status.enum';
-import { CardRequestEntity } from './card-request.entity';
+import { CardRequestOrmEntity } from './card-request-orm.entity';
 
 @Entity({ name: 'cards' })
-export class CardEntity {
+export class CardOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ name: 'card_request_id', type: 'uuid', unique: true })
   cardRequestId: string;
 
-  @OneToOne(() => CardRequestEntity, (cardRequest) => cardRequest.card, {
+  @OneToOne(() => CardRequestOrmEntity, (cardRequest) => cardRequest.card, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'card_request_id' })
-  cardRequest: CardRequestEntity;
+  cardRequest: CardRequestOrmEntity;
 
   @Column({
     name: 'processor_card_reference',

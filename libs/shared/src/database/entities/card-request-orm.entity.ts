@@ -7,10 +7,10 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { CardRequestStatus } from '../enums/card-request-status.enum';
-import { CardEntity } from './card.entity';
+import { CardOrmEntity } from './card-orm.entity';
 
 @Entity({ name: 'card_requests' })
-export class CardRequestEntity {
+export class CardRequestOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -22,17 +22,26 @@ export class CardRequestEntity {
   })
   idempotencyKey: string;
 
-  @Column({ name: 'customer_id', type: 'varchar', length: 120 })
-  customerId: string;
+  @Column({ name: 'document_type', type: 'varchar', length: 20 })
+  documentType: 'DNI';
 
-  @Column({ name: 'holder_name', type: 'varchar', length: 160 })
-  holderName: string;
+  @Column({ name: 'document_number', type: 'varchar', length: 20 })
+  documentNumber: string;
 
-  @Column({ type: 'varchar', length: 50 })
-  brand: string;
+  @Column({ name: 'full_name', type: 'varchar', length: 160 })
+  fullName: string;
 
-  @Column({ name: 'card_type', type: 'varchar', length: 50 })
-  cardType: string;
+  @Column({ type: 'integer' })
+  age: number;
+
+  @Column({ type: 'varchar', length: 255 })
+  email: string;
+
+  @Column({ name: 'product_type', type: 'varchar', length: 50 })
+  productType: 'VISA';
+
+  @Column({ type: 'varchar', length: 3 })
+  currency: 'PEN' | 'USD';
 
   @Column({
     type: 'enum',
@@ -57,6 +66,6 @@ export class CardRequestEntity {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
 
-  @OneToOne(() => CardEntity, (card) => card.cardRequest)
-  card: CardEntity | null;
+  @OneToOne(() => CardOrmEntity, (card) => card.cardRequest)
+  card: CardOrmEntity | null;
 }

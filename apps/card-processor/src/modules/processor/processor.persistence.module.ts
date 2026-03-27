@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { CardEntity, CardRequestEntity } from '@app/shared';
+import { CardEntity, CardRequestOrmEntity } from '@app/shared';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([CardRequestEntity, CardEntity])],
+  imports: [TypeOrmModule.forFeature([CardRequestOrmEntity, CardEntity])],
 })
 export class ProcessorPersistenceModule {}
