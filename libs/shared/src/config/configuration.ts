@@ -1,7 +1,8 @@
 export const appConfig = () => ({
   app: {
     nodeEnv: process.env.NODE_ENV ?? 'development',
-    port: Number(process.env.PORT ?? 3000),
+    issuerPort: Number(process.env.ISSUER_PORT ?? 3000),
+    processorPort: Number(process.env.PROCESSOR_PORT ?? 3001),
   },
   database: {
     host: process.env.DB_HOST ?? 'localhost',
