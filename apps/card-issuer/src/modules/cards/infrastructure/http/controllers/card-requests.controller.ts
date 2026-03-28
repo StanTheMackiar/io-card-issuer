@@ -1,10 +1,13 @@
 import {
   Body,
+  ClassSerializerInterceptor,
   Controller,
   Headers,
   HttpCode,
   HttpStatus,
   Post,
+  SerializeOptions,
+  UseInterceptors,
 } from '@nestjs/common';
 import { CreateCardRequestUseCase } from '../../../application/use-cases/create-card-request.use-case';
 import { CreateCardRequestDto } from '../requests/create-card-request.dto';
@@ -17,6 +20,11 @@ export class CardRequestsController {
   ) {}
 
   @Post()
+  @UseInterceptors(ClassSerializerInterceptor)
+  @SerializeOptions({
+    type: CardRequestResponseDto,
+    excludeExtraneousValues: true,
+  })
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Headers('idempotency-key') idempotencyKey: string,
@@ -27,6 +35,6 @@ export class CardRequestsController {
       ...body,
     });
 
-    return CardRequestResponseDto.from(cardRequest);
+    return cardRequest;
   }
 }
