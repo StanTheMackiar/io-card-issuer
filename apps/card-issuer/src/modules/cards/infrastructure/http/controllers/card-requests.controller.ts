@@ -13,13 +13,13 @@ import { IdempotencyKey } from '../decorators/idempotency-key.decorator';
 import { CreateCardRequestDto } from '../requests/create-card-request.dto';
 import { CardRequestResponseDto } from '../responses/card-request.response.dto';
 
-@Controller('card-requests')
+@Controller('cards')
 export class CardRequestsController {
   constructor(
     private readonly createCardRequestUseCase: CreateCardRequestUseCase,
   ) {}
 
-  @Post()
+  @Post('issue')
   @UseInterceptors(ClassSerializerInterceptor)
   @SerializeOptions({
     type: CardRequestResponseDto,
@@ -29,7 +29,7 @@ export class CardRequestsController {
   async create(
     @IdempotencyKey() idempotencyKey: string,
     @Body() body: CreateCardRequestDto,
-  ): Promise<CardRequestResponseDto> {
+  ) {
     const cardRequest = await this.createCardRequestUseCase.execute({
       idempotencyKey,
       ...body,
