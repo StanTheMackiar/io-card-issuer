@@ -2,7 +2,6 @@ import {
   Body,
   ClassSerializerInterceptor,
   Controller,
-  Headers,
   HttpCode,
   HttpStatus,
   Post,
@@ -10,6 +9,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { CreateCardRequestUseCase } from '../../../application/use-cases/create-card-request.use-case';
+import { IdempotencyKey } from '../decorators/idempotency-key.decorator';
 import { CreateCardRequestDto } from '../requests/create-card-request.dto';
 import { CardRequestResponseDto } from '../responses/card-request.response.dto';
 
@@ -27,7 +27,7 @@ export class CardRequestsController {
   })
   @HttpCode(HttpStatus.CREATED)
   async create(
-    @Headers('idempotency-key') idempotencyKey: string,
+    @IdempotencyKey() idempotencyKey: string,
     @Body() body: CreateCardRequestDto,
   ): Promise<CardRequestResponseDto> {
     const cardRequest = await this.createCardRequestUseCase.execute({
