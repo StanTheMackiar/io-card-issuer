@@ -1,8 +1,4 @@
-import {
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CardRequest } from '../../domain/entities/card-request';
 import {
   CreateCardRequestCommand,
@@ -21,12 +17,6 @@ export class CreateCardRequestUseCase {
   async execute(
     command: CreateCardRequestCommand,
   ): Promise<CreateCardRequestResult> {
-    if (command.forceError) {
-      throw new InternalServerErrorException(
-        'Forced error requested by issuer API contract',
-      );
-    }
-
     const existingCardRequest =
       await this.cardRequestRepository.findByIdempotencyKey(
         command.idempotencyKey,
