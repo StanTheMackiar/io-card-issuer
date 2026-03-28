@@ -1,4 +1,4 @@
-import { CardEntity, CardRequestOrmEntity } from '@app/shared';
+import { CardOrmEntity, CardRequestOrmEntity } from '@app/shared';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CARD_REQUEST_REPOSITORY } from './application/ports/card-request-repository.port';
@@ -7,7 +7,7 @@ import { CardRequestsController } from './infrastructure/http/controllers/card-r
 import { TypeOrmCardRequestRepository } from './infrastructure/persistence/repositories/card-request-typeorm.repository';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([CardRequestOrmEntity, CardEntity])],
+  imports: [TypeOrmModule.forFeature([CardRequestOrmEntity, CardOrmEntity])],
   controllers: [CardRequestsController],
   providers: [
     CreateCardRequestUseCase,
