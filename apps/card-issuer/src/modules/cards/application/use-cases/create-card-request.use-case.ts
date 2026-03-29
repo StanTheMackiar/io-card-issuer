@@ -1,6 +1,5 @@
-import type { CardRequestedEventData } from '@app/shared';
+import { CardRequest, type CardRequestedEventData } from '@app/shared';
 import { Inject, Injectable } from '@nestjs/common';
-import { CardRequest } from '../../domain/entities/card-request';
 import {
   CreateCardRequestCommand,
   CreateCardRequestResult,
@@ -40,9 +39,6 @@ export class CreateCardRequestUseCase {
     const payload = createdCardRequest.toPrimitives();
     const event: CardRequestedEventData = {
       requestId: payload.id,
-      status: 'pending',
-      customer: payload.customer,
-      product: payload.product,
       forceError: command.forceError,
     };
 

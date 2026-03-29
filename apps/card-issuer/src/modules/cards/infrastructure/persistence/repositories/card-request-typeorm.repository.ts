@@ -1,9 +1,8 @@
-import { CardRequestOrmEntity } from '@app/shared';
+import { CardRequest, CardRequestOrmEntity } from '@app/shared';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CardRequestRepositoryPort } from '../../../application/ports/card-request-repository.port';
-import { CardRequest } from '../../../domain/entities/card-request';
 
 @Injectable()
 export class CardRequestOrmRepository implements CardRequestRepositoryPort {
@@ -39,6 +38,7 @@ export class CardRequestOrmRepository implements CardRequestRepositoryPort {
       },
       status: entity.status,
       requestedAt: entity.requestedAt,
+      processedAt: entity.processedAt,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     });
@@ -81,6 +81,7 @@ export class CardRequestOrmRepository implements CardRequestRepositoryPort {
       },
       status: savedEntity.status,
       requestedAt: savedEntity.requestedAt,
+      processedAt: savedEntity.processedAt,
       createdAt: savedEntity.createdAt,
       updatedAt: savedEntity.updatedAt,
     });

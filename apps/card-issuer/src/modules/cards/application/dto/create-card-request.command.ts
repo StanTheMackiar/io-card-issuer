@@ -1,8 +1,8 @@
-import { CardRequestStatus } from '@app/shared';
-import type {
-  CardRequestCustomer,
-  CardRequestProduct,
-} from '../../domain/entities/card-request';
+import {
+  CardRequestStatus,
+  type CardRequestCustomer,
+  type CardRequestProduct,
+} from '@app/shared';
 
 export type CreateCardRequestCommand = {
   idempotencyKey: string;

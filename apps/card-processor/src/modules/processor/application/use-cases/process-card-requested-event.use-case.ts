@@ -35,19 +35,29 @@ export class ProcessCardRequestedEventUseCase {
       throw new Error('Forced card processing error');
     }
 
+    const cardRequest = await this.cardRequestRepository.findById(
+      event.requestId,
+    );
+
+    if (!cardRequest) {
+      throw new Error(`Card request ${event.requestId} was not found`);
+    }
+
+    const cardRequestPrimitives = cardRequest.toPrimitives();
+
     await sleep(400);
 
-    const card = this.cardIssuanceFactory.create(event.requestId);
+    const card = this.cardIssuanceFactory.create(cardRequestPrimitives.id);
     const createdCard = await this.cardRepository.create(card);
     const createdCardPrimitives = createdCard.toPrimitives();
 
     await this.cardRequestRepository.updateStatus(
-      event.requestId,
+      cardRequestPrimitives.id,
       CardRequestStatus.ISSUED,
     );
 
     await this.cardIssuedEventPublisher.publishIssued({
-      requestId: event.requestId,
+      requestId: cardRequestPrimitives.id,
       status: 'issued',
       card: {
         id: createdCardPrimitives.id,

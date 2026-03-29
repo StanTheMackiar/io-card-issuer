@@ -1,5 +1,4 @@
-import { CardRequestStatus } from '@app/shared';
-import { CardRequest } from '../../domain/entities/card-request';
+import { CardRequest, CardRequestStatus } from '@app/shared';
 import type { CardRequestEventPublisherPort } from '../ports/card-request-event-publisher.port';
 import type { CardRequestRepositoryPort } from '../ports/card-request-repository.port';
 import { CreateCardRequestUseCase } from './create-card-request.use-case';
@@ -43,9 +42,6 @@ describe('CreateCardRequestUseCase', () => {
     expect(create).toHaveBeenCalledTimes(1);
     expect(publishRequested).toHaveBeenCalledWith({
       requestId: result.id,
-      status: 'pending',
-      customer: command.customer,
-      product: command.product,
       forceError: false,
     });
     expect(result.idempotencyKey).toBe('idem-123');
@@ -60,6 +56,7 @@ describe('CreateCardRequestUseCase', () => {
       product: command.product,
       status: CardRequestStatus.PENDING,
       requestedAt: new Date('2026-03-26T10:00:00.000Z'),
+      processedAt: null,
       createdAt: new Date('2026-03-26T10:00:00.000Z'),
       updatedAt: new Date('2026-03-26T10:00:00.000Z'),
     });
@@ -109,7 +106,6 @@ describe('CreateCardRequestUseCase', () => {
     expect(publishRequested).toHaveBeenCalledWith(
       expect.objectContaining({
         forceError: true,
-        status: 'pending',
       }),
     );
   });

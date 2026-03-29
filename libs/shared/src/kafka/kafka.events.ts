@@ -8,18 +8,6 @@ export type CloudEvent<T> = {
 
 export type CardRequestedEventData = {
   requestId: string;
-  status: 'pending';
-  customer: {
-    documentType: 'DNI';
-    documentNumber: string;
-    fullName: string;
-    age: number;
-    email: string;
-  };
-  product: {
-    type: 'VISA';
-    currency: 'PEN' | 'USD';
-  };
   forceError: boolean;
 };
 

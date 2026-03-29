@@ -1,5 +1,5 @@
-import { CardRequestStatus } from '@app/shared';
 import { randomUUID } from 'node:crypto';
+import { CardRequestStatus } from '../../database/enums/card-request-status.enum';
 
 export type CardRequestCustomer = {
   documentType: 'DNI';
@@ -21,6 +21,7 @@ type CardRequestProps = {
   product: CardRequestProduct;
   status: CardRequestStatus;
   requestedAt: Date;
+  processedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -44,6 +45,7 @@ export class CardRequest {
       product: props.product,
       status: CardRequestStatus.PENDING,
       requestedAt: now,
+      processedAt: null,
       createdAt: now,
       updatedAt: now,
     });

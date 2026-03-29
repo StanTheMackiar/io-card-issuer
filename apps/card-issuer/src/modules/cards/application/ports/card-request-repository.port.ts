@@ -1,4 +1,4 @@
-import type { CardRequest } from '../../domain/entities/card-request';
+import type { CardRequest } from '@app/shared';
 
 export const CARD_REQUEST_REPOSITORY = 'CARD_REQUEST_REPOSITORY';
 

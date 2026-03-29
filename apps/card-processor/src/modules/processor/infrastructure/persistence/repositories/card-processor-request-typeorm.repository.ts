@@ -1,8 +1,12 @@
-import { CardRequestOrmEntity, type CardRequestStatus } from '@app/shared';
+import {
+  CardRequest,
+  CardRequestOrmEntity,
+  type CardRequestStatus,
+} from '@app/shared';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CardProcessorRequestRepositoryPort } from '../../../application/ports/card-processor-request.repository.port';
+import { type CardProcessorRequestRepositoryPort } from '../../../application/ports/card-processor-request.repository.port';
 
 @Injectable()
 export class CardProcessorRequestTypeOrmRepository implements CardProcessorRequestRepositoryPort {
@@ -10,6 +14,41 @@ export class CardProcessorRequestTypeOrmRepository implements CardProcessorReque
     @InjectRepository(CardRequestOrmEntity)
     private readonly repository: Repository<CardRequestOrmEntity>,
   ) {}
+
+  private rehydrateCardRequest(cardRequest: CardRequestOrmEntity): CardRequest {
+    return CardRequest.rehydrate({
+      id: cardRequest.id,
+      idempotencyKey: cardRequest.idempotencyKey,
+      customer: {
+        documentType: cardRequest.documentType,
+        documentNumber: cardRequest.documentNumber,
+        fullName: cardRequest.fullName,
+        age: cardRequest.age,
+        email: cardRequest.email,
+      },
+      product: {
+        type: cardRequest.productType,
+        currency: cardRequest.currency,
+      },
+      status: cardRequest.status,
+      requestedAt: cardRequest.requestedAt,
+      processedAt: cardRequest.processedAt,
+      createdAt: cardRequest.createdAt,
+      updatedAt: cardRequest.updatedAt,
+    });
+  }
+
+  async findById(requestId: string): Promise<CardRequest | null> {
+    const cardRequest = await this.repository.findOne({
+      where: { id: requestId },
+    });
+
+    if (!cardRequest) {
+      return null;
+    }
+
+    return this.rehydrateCardRequest(cardRequest);
+  }
 
   async updateStatus(
     requestId: string,
