@@ -8,6 +8,7 @@ import { CARD_REQUESTED_DLQ_EVENT_PUBLISHER } from './application/ports/card-req
 import { ProcessCardRequestedEventUseCase } from './application/use-cases/process-card-requested-event.use-case';
 import { CardIssuanceFactory } from './domain/services/card-issuance.factory';
 import { CardRequestedConsumer } from './infrastructure/messaging/consumers/card-requested.consumer';
+import { CardRequestedDlqConsumer } from './infrastructure/messaging/consumers/card-requested-dlq.consumer';
 import { KafkaCardIssuedEventPublisher } from './infrastructure/messaging/publishers/kafka-card-issued-event.publisher';
 import { KafkaCardRequestedDlqEventPublisher } from './infrastructure/messaging/publishers/kafka-card-requested-dlq-event.publisher';
 import { CardRequestOrmRepository } from './infrastructure/persistence/repositories/card-processor-request-typeorm.repository';
@@ -19,6 +20,7 @@ import { CardOrmRepository } from './infrastructure/persistence/repositories/car
     ProcessCardRequestedEventUseCase,
     CardIssuanceFactory,
     CardRequestedConsumer,
+    CardRequestedDlqConsumer,
     KafkaCardIssuedEventPublisher,
     KafkaCardRequestedDlqEventPublisher,
     CardRequestOrmRepository,
