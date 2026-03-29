@@ -4,7 +4,12 @@ import {
   type CardRequestedEvent,
   type CardRequestedEventData,
 } from '@app/shared';
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Kafka, type Producer } from 'kafkajs';
 import { CardRequestEventPublisherPort } from '../../../application/ports/card-request-event-publisher.port';
@@ -13,6 +18,7 @@ import { CardRequestEventPublisherPort } from '../../../application/ports/card-r
 export class KafkaCardRequestEventPublisher
   implements CardRequestEventPublisherPort, OnModuleInit, OnModuleDestroy
 {
+  private logger = new Logger(KafkaCardRequestEventPublisher.name);
   private readonly producer: Producer;
 
   constructor(private readonly configService: ConfigService) {
@@ -50,5 +56,9 @@ export class KafkaCardRequestEventPublisher
         },
       ],
     });
+
+    this.logger.log(
+      `Published CardRequestedEvent for requestId: ${event.requestId}`,
+    );
   }
 }
