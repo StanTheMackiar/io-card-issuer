@@ -1,4 +1,4 @@
-import { KAFKA_TOPICS, type CardRequestedEvent } from '@app/shared';
+import { KAFKA_TOPICS, sleep, type CardRequestedEvent } from '@app/shared';
 import {
   Injectable,
   Logger,
@@ -12,6 +12,7 @@ import { ProcessCardRequestedEventUseCase } from '../../../application/use-cases
 @Injectable()
 export class CardRequestedConsumer implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(CardRequestedConsumer.name);
+  private static readonly retryDelaysMs = [1000, 2000, 4000] as const;
   private readonly consumer: Consumer;
 
   constructor(
@@ -46,7 +47,7 @@ export class CardRequestedConsumer implements OnModuleInit, OnModuleDestroy {
             message.value.toString(),
           ) as CardRequestedEvent;
 
-          await this.processCardRequestedEventUseCase.execute(event.data);
+          await this.processWithRetry(event.data);
         } catch (error: unknown) {
           const errorMessage =
             error instanceof Error ? error.message : String(error);
@@ -60,5 +61,39 @@ export class CardRequestedConsumer implements OnModuleInit, OnModuleDestroy {
 
   async onModuleDestroy(): Promise<void> {
     await this.consumer.disconnect();
+  }
+
+  private async processWithRetry(
+    event: CardRequestedEvent['data'],
+  ): Promise<void> {
+    let lastError: unknown;
+
+    for (
+      let attempt = 0;
+      attempt <= CardRequestedConsumer.retryDelaysMs.length;
+      attempt += 1
+    ) {
+      try {
+        await this.processCardRequestedEventUseCase.execute(event);
+      } catch (error: unknown) {
+        lastError = error;
+
+        if (attempt === CardRequestedConsumer.retryDelaysMs.length) {
+          break;
+        }
+
+        const delayMs = CardRequestedConsumer.retryDelaysMs[attempt];
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+
+        this.logger.warn(
+          `Retrying card request ${event.requestId} in ${delayMs}ms after failure: ${errorMessage}`,
+        );
+
+        await sleep(delayMs);
+      }
+    }
+
+    throw lastError;
   }
 }

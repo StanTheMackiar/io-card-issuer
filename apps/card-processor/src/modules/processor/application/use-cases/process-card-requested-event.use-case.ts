@@ -1,5 +1,6 @@
 import {
   CardRequestStatus,
+  randomBoolean,
   sleep,
   type CardRequestedEventData,
 } from '@app/shared';
@@ -46,6 +47,12 @@ export class ProcessCardRequestedEventUseCase {
     const cardRequestPrimitives = cardRequest.toPrimitives();
 
     await sleep(400);
+
+    if (!randomBoolean()) {
+      throw new Error(
+        `Card issuance simulation failed for request ${cardRequestPrimitives.id}`,
+      );
+    }
 
     const card = this.cardIssuanceFactory.create(cardRequestPrimitives.id);
     const createdCard = await this.cardRepository.create(card);

@@ -19,4 +19,5 @@ export type {
   CardRequestedEventData,
   CloudEvent,
 } from './kafka/kafka.events';
+export { randomBoolean } from './utils/random-boolean';
 export { sleep } from './utils/sleep';
