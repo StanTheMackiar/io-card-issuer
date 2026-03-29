@@ -15,4 +15,8 @@ export const envSchema = Joi.object({
   KAFKA_BROKERS: Joi.string().default('localhost:9092'),
   KAFKA_CLIENT_ID: Joi.string().default('io-card-platform'),
   KAFKA_PROCESSOR_GROUP_ID: Joi.string().default('card-processor-group'),
+  CARD_REQUEST_EVENT_RETRY_BATCH_SIZE: Joi.number()
+    .integer()
+    .min(1)
+    .default(50),
 });

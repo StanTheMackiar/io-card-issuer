@@ -72,6 +72,13 @@ export class CardRequestOrmEntity {
   eventPublishAttempts: number;
 
   @Column({
+    name: 'event_force_error',
+    type: 'boolean',
+    default: false,
+  })
+  eventForceError: boolean;
+
+  @Column({
     name: 'last_publish_error',
     type: 'text',
     nullable: true,

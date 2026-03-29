@@ -33,8 +33,10 @@ export class CreateCardRequestUseCase {
     }
 
     const cardRequest = CardRequest.create(command);
-    const createdCardRequest =
-      await this.cardRequestRepository.create(cardRequest);
+    const createdCardRequest = await this.cardRequestRepository.create(
+      cardRequest,
+      command.forceError,
+    );
 
     const payload = createdCardRequest.toPrimitives();
     const event: CardRequestedEventData = {
@@ -42,7 +44,28 @@ export class CreateCardRequestUseCase {
       forceError: command.forceError,
     };
 
-    await this.cardRequestEventPublisher.publishRequested(event);
+    try {
+      await this.cardRequestEventPublisher.publishRequested(event);
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      await this.cardRequestRepository.registerPublishFailure(
+        payload.id,
+        errorMessage,
+      );
+
+      return createdCardRequest.toPrimitives();
+    }
+
+    try {
+      await this.cardRequestRepository.markEventPublished(
+        payload.id,
+        new Date(),
+      );
+    } catch {
+      return createdCardRequest.toPrimitives();
+    }
 
     return createdCardRequest.toPrimitives();
   }

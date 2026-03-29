@@ -26,9 +26,14 @@ describe('CreateCardRequestUseCase', () => {
       Promise.resolve(cardRequest),
     );
     const publishRequested = jest.fn().mockResolvedValue(undefined);
+    const markEventPublished = jest.fn().mockResolvedValue(undefined);
+    const registerPublishFailure = jest.fn().mockResolvedValue(undefined);
     const repository: CardRequestRepositoryPort = {
       findByIdempotencyKey,
       create,
+      findPendingEventPublications: jest.fn(),
+      markEventPublished,
+      registerPublishFailure,
     };
     const publisher: CardRequestEventPublisherPort = {
       publishRequested,
@@ -39,11 +44,16 @@ describe('CreateCardRequestUseCase', () => {
     const result = await useCase.execute(command);
 
     expect(findByIdempotencyKey).toHaveBeenCalledWith('idem-123');
-    expect(create).toHaveBeenCalledTimes(1);
+    expect(create).toHaveBeenCalledWith(expect.any(CardRequest), false);
     expect(publishRequested).toHaveBeenCalledWith({
       requestId: result.id,
       forceError: false,
     });
+    expect(markEventPublished).toHaveBeenCalledWith(
+      result.id,
+      expect.any(Date),
+    );
+    expect(registerPublishFailure).not.toHaveBeenCalled();
     expect(result.idempotencyKey).toBe('idem-123');
     expect(result.status).toBe(CardRequestStatus.PENDING);
   });
@@ -71,6 +81,9 @@ describe('CreateCardRequestUseCase', () => {
     const repository: CardRequestRepositoryPort = {
       findByIdempotencyKey,
       create,
+      findPendingEventPublications: jest.fn(),
+      markEventPublished: jest.fn(),
+      registerPublishFailure: jest.fn(),
     };
     const publisher: CardRequestEventPublisherPort = {
       publishRequested,
@@ -93,6 +106,9 @@ describe('CreateCardRequestUseCase', () => {
       create: jest.fn((cardRequest: CardRequest) =>
         Promise.resolve(cardRequest),
       ),
+      findPendingEventPublications: jest.fn(),
+      markEventPublished: jest.fn().mockResolvedValue(undefined),
+      registerPublishFailure: jest.fn().mockResolvedValue(undefined),
     };
     const publisher: CardRequestEventPublisherPort = {
       publishRequested,
@@ -111,5 +127,63 @@ describe('CreateCardRequestUseCase', () => {
         forceError: true,
       }),
     );
+  });
+
+  it('stores the request and records a publish failure when the event publish fails', async () => {
+    const registerPublishFailure = jest.fn().mockResolvedValue(undefined);
+    const markEventPublished = jest.fn();
+    const repository: CardRequestRepositoryPort = {
+      findByIdempotencyKey: jest.fn().mockResolvedValue(null),
+      create: jest.fn((cardRequest: CardRequest) =>
+        Promise.resolve(cardRequest),
+      ),
+      findPendingEventPublications: jest.fn(),
+      markEventPublished,
+      registerPublishFailure,
+    };
+    const publisher: CardRequestEventPublisherPort = {
+      publishRequested: jest.fn().mockRejectedValue(new Error('kafka down')),
+    };
+
+    const useCase = new CreateCardRequestUseCase(repository, publisher);
+
+    const result = await useCase.execute(command);
+
+    expect(result.status).toBe(CardRequestStatus.PENDING);
+    expect(registerPublishFailure).toHaveBeenCalledWith(
+      result.id,
+      'kafka down',
+    );
+    expect(markEventPublished).not.toHaveBeenCalled();
+  });
+
+  it('does not register a publish failure when the event is published but marking it fails', async () => {
+    const markEventPublished = jest
+      .fn()
+      .mockRejectedValue(new Error('db update failed'));
+    const registerPublishFailure = jest.fn().mockResolvedValue(undefined);
+    const repository: CardRequestRepositoryPort = {
+      findByIdempotencyKey: jest.fn().mockResolvedValue(null),
+      create: jest.fn((cardRequest: CardRequest) =>
+        Promise.resolve(cardRequest),
+      ),
+      findPendingEventPublications: jest.fn(),
+      markEventPublished,
+      registerPublishFailure,
+    };
+    const publisher: CardRequestEventPublisherPort = {
+      publishRequested: jest.fn().mockResolvedValue(undefined),
+    };
+
+    const useCase = new CreateCardRequestUseCase(repository, publisher);
+
+    const result = await useCase.execute(command);
+
+    expect(result.status).toBe(CardRequestStatus.PENDING);
+    expect(markEventPublished).toHaveBeenCalledWith(
+      result.id,
+      expect.any(Date),
+    );
+    expect(registerPublishFailure).not.toHaveBeenCalled();
   });
 });

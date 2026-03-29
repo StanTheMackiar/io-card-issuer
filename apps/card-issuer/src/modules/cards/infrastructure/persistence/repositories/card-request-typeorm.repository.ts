@@ -1,8 +1,11 @@
 import { CardRequest, CardRequestOrmEntity } from '@app/shared';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { CardRequestRepositoryPort } from '../../../application/ports/card-request-repository.port';
+import { IsNull, Repository } from 'typeorm';
+import {
+  type CardRequestRepositoryPort,
+  type PendingCardRequestPublication,
+} from '../../../application/ports/card-request-repository.port';
 
 @Injectable()
 export class CardRequestOrmRepository implements CardRequestRepositoryPort {
@@ -51,7 +54,10 @@ export class CardRequestOrmRepository implements CardRequestRepositoryPort {
     return this.rehydrate(entity);
   }
 
-  async create(cardRequest: CardRequest): Promise<CardRequest> {
+  async create(
+    cardRequest: CardRequest,
+    forceError: boolean,
+  ): Promise<CardRequest> {
     const primitives = cardRequest.toPrimitives();
     const entity = this.repository.create({
       id: primitives.id,
@@ -67,6 +73,7 @@ export class CardRequestOrmRepository implements CardRequestRepositoryPort {
       requestedAt: primitives.requestedAt,
       eventPublishedAt: primitives.eventPublishedAt,
       eventPublishAttempts: primitives.eventPublishAttempts,
+      eventForceError: forceError,
       lastPublishError: primitives.lastPublishError,
       processedAt: null,
       createdAt: primitives.createdAt,
@@ -76,5 +83,55 @@ export class CardRequestOrmRepository implements CardRequestRepositoryPort {
     const savedEntity = await this.repository.save(entity);
 
     return this.rehydrate(savedEntity);
+  }
+
+  async findPendingEventPublications(
+    limit: number,
+  ): Promise<PendingCardRequestPublication[]> {
+    const entities = await this.repository.find({
+      where: { eventPublishedAt: IsNull() },
+      order: { createdAt: 'ASC' },
+      take: limit,
+    });
+
+    return entities.map((entity) => ({
+      cardRequest: this.rehydrate(entity),
+      forceError: entity.eventForceError,
+    }));
+  }
+
+  async markEventPublished(
+    requestId: string,
+    publishedAt: Date,
+  ): Promise<void> {
+    await this.repository.increment(
+      { id: requestId },
+      'eventPublishAttempts',
+      1,
+    );
+    await this.repository.update(
+      { id: requestId },
+      {
+        eventPublishedAt: publishedAt,
+        lastPublishError: null,
+      },
+    );
+  }
+
+  async registerPublishFailure(
+    requestId: string,
+    errorMessage: string,
+  ): Promise<void> {
+    await this.repository.increment(
+      { id: requestId },
+      'eventPublishAttempts',
+      1,
+    );
+    await this.repository.update(
+      { id: requestId },
+      {
+        lastPublishError: errorMessage,
+      },
+    );
   }
 }

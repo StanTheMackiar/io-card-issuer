@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import {
   appConfig,
   DatabaseModule,
@@ -18,6 +19,7 @@ import { CardsModule } from './modules/cards/cards.module';
     }),
     DatabaseModule,
     HealthModule,
+    ScheduleModule.forRoot(),
     CardsModule,
   ],
 })

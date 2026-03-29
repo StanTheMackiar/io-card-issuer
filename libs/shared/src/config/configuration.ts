@@ -20,5 +20,8 @@ export const appConfig = () => ({
     clientId: process.env.KAFKA_CLIENT_ID ?? 'io-card-platform',
     processorGroupId:
       process.env.KAFKA_PROCESSOR_GROUP_ID ?? 'card-processor-group',
+    cardRequestRetryBatchSize: Number(
+      process.env.CARD_REQUEST_EVENT_RETRY_BATCH_SIZE ?? 50,
+    ),
   },
 });
