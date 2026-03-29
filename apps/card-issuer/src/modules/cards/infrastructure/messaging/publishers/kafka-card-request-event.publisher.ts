@@ -47,6 +47,10 @@ export class KafkaCardRequestEventPublisher
       data: event,
     };
 
+    this.logger.log(
+      `Publishing CardRequestedEvent for requestId: ${event.requestId}`,
+    );
+
     await this.producer.send({
       topic: KAFKA_TOPICS.CARD_REQUESTED_V1,
       messages: [
