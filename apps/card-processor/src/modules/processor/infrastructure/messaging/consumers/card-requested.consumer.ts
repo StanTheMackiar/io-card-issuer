@@ -1,5 +1,11 @@
-import { KAFKA_TOPICS, sleep, type CardRequestedEvent } from '@app/shared';
 import {
+  KAFKA_TOPICS,
+  sleep,
+  type CardRequestedDlqEventData,
+  type CardRequestedEvent,
+} from '@app/shared';
+import {
+  Inject,
   Injectable,
   Logger,
   OnModuleDestroy,
@@ -7,17 +13,25 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Kafka, type Consumer } from 'kafkajs';
+import {
+  CARD_REQUESTED_DLQ_EVENT_PUBLISHER,
+  type CardRequestedDlqEventPublisherPort,
+} from '../../../application/ports/card-requested-dlq-event-publisher.port';
 import { ProcessCardRequestedEventUseCase } from '../../../application/use-cases/process-card-requested-event.use-case';
 
 @Injectable()
 export class CardRequestedConsumer implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(CardRequestedConsumer.name);
   private static readonly retryDelaysMs = [1000, 2000, 4000] as const;
+  private static readonly maxRetryAttempts =
+    CardRequestedConsumer.retryDelaysMs.length;
   private readonly consumer: Consumer;
 
   constructor(
     private readonly configService: ConfigService,
     private readonly processCardRequestedEventUseCase: ProcessCardRequestedEventUseCase,
+    @Inject(CARD_REQUESTED_DLQ_EVENT_PUBLISHER)
+    private readonly cardRequestedDlqEventPublisher: CardRequestedDlqEventPublisherPort,
   ) {
     const kafka = new Kafka({
       clientId: this.configService.getOrThrow<string>('kafka.clientId'),
@@ -42,15 +56,18 @@ export class CardRequestedConsumer implements OnModuleInit, OnModuleDestroy {
           return;
         }
 
-        try {
-          const event = JSON.parse(
-            message.value.toString(),
-          ) as CardRequestedEvent;
+        const event = JSON.parse(
+          message.value.toString(),
+        ) as CardRequestedEvent;
 
+        try {
           await this.processWithRetry(event.data);
         } catch (error: unknown) {
           const errorMessage =
             error instanceof Error ? error.message : String(error);
+
+          await this.publishToDlq(event.data, errorMessage);
+
           this.logger.error(
             `Failed to process card requested event: ${errorMessage}`,
           );
@@ -70,15 +87,17 @@ export class CardRequestedConsumer implements OnModuleInit, OnModuleDestroy {
 
     for (
       let attempt = 0;
-      attempt <= CardRequestedConsumer.retryDelaysMs.length;
+      attempt <= CardRequestedConsumer.maxRetryAttempts;
       attempt += 1
     ) {
       try {
         await this.processCardRequestedEventUseCase.execute(event);
+
+        return;
       } catch (error: unknown) {
         lastError = error;
 
-        if (attempt === CardRequestedConsumer.retryDelaysMs.length) {
+        if (attempt === CardRequestedConsumer.maxRetryAttempts) {
           break;
         }
 
@@ -95,5 +114,18 @@ export class CardRequestedConsumer implements OnModuleInit, OnModuleDestroy {
     }
 
     throw lastError;
+  }
+
+  private async publishToDlq(
+    event: CardRequestedEvent['data'],
+    reason: string,
+  ): Promise<void> {
+    const dlqEvent: CardRequestedDlqEventData = {
+      reason,
+      attempts: CardRequestedConsumer.maxRetryAttempts,
+      payload: event,
+    };
+
+    await this.cardRequestedDlqEventPublisher.publishDlq(dlqEvent);
   }
 }

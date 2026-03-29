@@ -11,6 +11,12 @@ export type CardRequestedEventData = {
   forceError: boolean;
 };
 
+export type CardRequestedDlqEventData = {
+  reason: string;
+  attempts: number;
+  payload: CardRequestedEventData;
+};
+
 export type CardIssuedEventData = {
   requestId: string;
   status: 'issued';
@@ -22,5 +28,6 @@ export type CardIssuedEventData = {
 };
 
 export type CardRequestedEvent = CloudEvent<CardRequestedEventData>;
+export type CardRequestedDlqEvent = CloudEvent<CardRequestedDlqEventData>;
 
 export type CardIssuedEvent = CloudEvent<CardIssuedEventData>;

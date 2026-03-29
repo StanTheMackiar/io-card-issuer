@@ -15,6 +15,8 @@ export { KAFKA_EVENT_IDS, KAFKA_TOPICS } from './kafka/kafka.constants';
 export type {
   CardIssuedEvent,
   CardIssuedEventData,
+  CardRequestedDlqEvent,
+  CardRequestedDlqEventData,
   CardRequestedEvent,
   CardRequestedEventData,
   CloudEvent,
