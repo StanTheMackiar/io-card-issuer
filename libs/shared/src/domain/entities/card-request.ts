@@ -21,6 +21,9 @@ type CardRequestProps = {
   product: CardRequestProduct;
   status: CardRequestStatus;
   requestedAt: Date;
+  eventPublishedAt: Date | null;
+  eventPublishAttempts: number;
+  lastPublishError: string | null;
   processedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -45,6 +48,9 @@ export class CardRequest {
       product: props.product,
       status: CardRequestStatus.PENDING,
       requestedAt: now,
+      eventPublishedAt: null,
+      eventPublishAttempts: 0,
+      lastPublishError: null,
       processedAt: null,
       createdAt: now,
       updatedAt: now,

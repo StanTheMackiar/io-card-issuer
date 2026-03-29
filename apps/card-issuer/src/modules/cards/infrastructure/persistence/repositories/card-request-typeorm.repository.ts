@@ -11,17 +11,7 @@ export class CardRequestOrmRepository implements CardRequestRepositoryPort {
     private readonly repository: Repository<CardRequestOrmEntity>,
   ) {}
 
-  async findByIdempotencyKey(
-    idempotencyKey: string,
-  ): Promise<CardRequest | null> {
-    const entity = await this.repository.findOne({
-      where: { idempotencyKey },
-    });
-
-    if (!entity) {
-      return null;
-    }
-
+  private rehydrate(entity: CardRequestOrmEntity): CardRequest {
     return CardRequest.rehydrate({
       id: entity.id,
       idempotencyKey: entity.idempotencyKey,
@@ -38,10 +28,27 @@ export class CardRequestOrmRepository implements CardRequestRepositoryPort {
       },
       status: entity.status,
       requestedAt: entity.requestedAt,
+      eventPublishedAt: entity.eventPublishedAt,
+      eventPublishAttempts: entity.eventPublishAttempts,
+      lastPublishError: entity.lastPublishError,
       processedAt: entity.processedAt,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     });
+  }
+
+  async findByIdempotencyKey(
+    idempotencyKey: string,
+  ): Promise<CardRequest | null> {
+    const entity = await this.repository.findOne({
+      where: { idempotencyKey },
+    });
+
+    if (!entity) {
+      return null;
+    }
+
+    return this.rehydrate(entity);
   }
 
   async create(cardRequest: CardRequest): Promise<CardRequest> {
@@ -58,6 +65,9 @@ export class CardRequestOrmRepository implements CardRequestRepositoryPort {
       currency: primitives.product.currency,
       status: primitives.status,
       requestedAt: primitives.requestedAt,
+      eventPublishedAt: primitives.eventPublishedAt,
+      eventPublishAttempts: primitives.eventPublishAttempts,
+      lastPublishError: primitives.lastPublishError,
       processedAt: null,
       createdAt: primitives.createdAt,
       updatedAt: primitives.updatedAt,
@@ -65,25 +75,6 @@ export class CardRequestOrmRepository implements CardRequestRepositoryPort {
 
     const savedEntity = await this.repository.save(entity);
 
-    return CardRequest.rehydrate({
-      id: savedEntity.id,
-      idempotencyKey: savedEntity.idempotencyKey,
-      customer: {
-        documentType: savedEntity.documentType,
-        documentNumber: savedEntity.documentNumber,
-        fullName: savedEntity.fullName,
-        age: savedEntity.age,
-        email: savedEntity.email,
-      },
-      product: {
-        type: savedEntity.productType,
-        currency: savedEntity.currency,
-      },
-      status: savedEntity.status,
-      requestedAt: savedEntity.requestedAt,
-      processedAt: savedEntity.processedAt,
-      createdAt: savedEntity.createdAt,
-      updatedAt: savedEntity.updatedAt,
-    });
+    return this.rehydrate(savedEntity);
   }
 }

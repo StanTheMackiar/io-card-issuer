@@ -57,6 +57,27 @@ export class CardRequestOrmEntity {
   })
   requestedAt: Date;
 
+  @Column({
+    name: 'event_published_at',
+    type: 'timestamptz',
+    nullable: true,
+  })
+  eventPublishedAt: Date | null;
+
+  @Column({
+    name: 'event_publish_attempts',
+    type: 'integer',
+    default: 0,
+  })
+  eventPublishAttempts: number;
+
+  @Column({
+    name: 'last_publish_error',
+    type: 'text',
+    nullable: true,
+  })
+  lastPublishError: string | null;
+
   @Column({ name: 'processed_at', type: 'timestamptz', nullable: true })
   processedAt: Date | null;
 
