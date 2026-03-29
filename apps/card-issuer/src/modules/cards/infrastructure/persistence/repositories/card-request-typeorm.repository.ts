@@ -6,7 +6,7 @@ import { CardRequestRepositoryPort } from '../../../application/ports/card-reque
 import { CardRequest } from '../../../domain/entities/card-request';
 
 @Injectable()
-export class TypeOrmCardRequestRepository implements CardRequestRepositoryPort {
+export class CardRequestOrmRepository implements CardRequestRepositoryPort {
   constructor(
     @InjectRepository(CardRequestOrmEntity)
     private readonly repository: Repository<CardRequestOrmEntity>,

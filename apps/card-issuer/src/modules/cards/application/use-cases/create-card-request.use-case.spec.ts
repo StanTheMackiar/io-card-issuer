@@ -1,5 +1,6 @@
 import { CardRequestStatus } from '@app/shared';
 import { CardRequest } from '../../domain/entities/card-request';
+import type { CardRequestEventPublisherPort } from '../ports/card-request-event-publisher.port';
 import type { CardRequestRepositoryPort } from '../ports/card-request-repository.port';
 import { CreateCardRequestUseCase } from './create-card-request.use-case';
 
@@ -25,17 +26,28 @@ describe('CreateCardRequestUseCase', () => {
     const create = jest.fn((cardRequest: CardRequest) =>
       Promise.resolve(cardRequest),
     );
+    const publishRequested = jest.fn().mockResolvedValue(undefined);
     const repository: CardRequestRepositoryPort = {
       findByIdempotencyKey,
       create,
     };
+    const publisher: CardRequestEventPublisherPort = {
+      publishRequested,
+    };
 
-    const useCase = new CreateCardRequestUseCase(repository);
+    const useCase = new CreateCardRequestUseCase(repository, publisher);
 
     const result = await useCase.execute(command);
 
     expect(findByIdempotencyKey).toHaveBeenCalledWith('idem-123');
     expect(create).toHaveBeenCalledTimes(1);
+    expect(publishRequested).toHaveBeenCalledWith({
+      requestId: result.id,
+      status: 'pending',
+      customer: command.customer,
+      product: command.product,
+      forceError: false,
+    });
     expect(result.idempotencyKey).toBe('idem-123');
     expect(result.status).toBe(CardRequestStatus.PENDING);
   });
@@ -55,33 +67,50 @@ describe('CreateCardRequestUseCase', () => {
       .fn()
       .mockResolvedValue(existingCardRequest);
     const create = jest.fn();
+    const publishRequested = jest.fn();
     const repository: CardRequestRepositoryPort = {
       findByIdempotencyKey,
       create,
     };
+    const publisher: CardRequestEventPublisherPort = {
+      publishRequested,
+    };
 
-    const useCase = new CreateCardRequestUseCase(repository);
+    const useCase = new CreateCardRequestUseCase(repository, publisher);
 
     const result = await useCase.execute(command);
 
     expect(findByIdempotencyKey).toHaveBeenCalledWith('idem-123');
     expect(create).not.toHaveBeenCalled();
+    expect(publishRequested).not.toHaveBeenCalled();
     expect(result).toEqual(existingCardRequest.toPrimitives());
   });
 
-  it('throws an error when forceError is requested', async () => {
+  it('publishes the event even when forceError is requested', async () => {
+    const publishRequested = jest.fn().mockResolvedValue(undefined);
     const repository: CardRequestRepositoryPort = {
-      findByIdempotencyKey: jest.fn(),
-      create: jest.fn(),
+      findByIdempotencyKey: jest.fn().mockResolvedValue(null),
+      create: jest.fn((cardRequest: CardRequest) =>
+        Promise.resolve(cardRequest),
+      ),
+    };
+    const publisher: CardRequestEventPublisherPort = {
+      publishRequested,
     };
 
-    const useCase = new CreateCardRequestUseCase(repository);
+    const useCase = new CreateCardRequestUseCase(repository, publisher);
 
     await expect(
       useCase.execute({
         ...command,
         forceError: true,
       }),
-    ).rejects.toThrow('Forced error requested by issuer API contract');
+    ).resolves.toBeDefined();
+    expect(publishRequested).toHaveBeenCalledWith(
+      expect.objectContaining({
+        forceError: true,
+        status: 'pending',
+      }),
+    );
   });
 });

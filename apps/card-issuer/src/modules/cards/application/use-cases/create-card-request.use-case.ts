@@ -1,9 +1,14 @@
+import type { CardRequestedEventData } from '@app/shared';
 import { Inject, Injectable } from '@nestjs/common';
 import { CardRequest } from '../../domain/entities/card-request';
 import {
   CreateCardRequestCommand,
   CreateCardRequestResult,
 } from '../dto/create-card-request.command';
+import {
+  CARD_REQUEST_EVENT_PUBLISHER,
+  type CardRequestEventPublisherPort,
+} from '../ports/card-request-event-publisher.port';
 import type { CardRequestRepositoryPort } from '../ports/card-request-repository.port';
 import { CARD_REQUEST_REPOSITORY } from '../ports/card-request-repository.port';
 
@@ -12,6 +17,8 @@ export class CreateCardRequestUseCase {
   constructor(
     @Inject(CARD_REQUEST_REPOSITORY)
     private readonly cardRequestRepository: CardRequestRepositoryPort,
+    @Inject(CARD_REQUEST_EVENT_PUBLISHER)
+    private readonly cardRequestEventPublisher: CardRequestEventPublisherPort,
   ) {}
 
   async execute(
@@ -29,6 +36,17 @@ export class CreateCardRequestUseCase {
     const cardRequest = CardRequest.create(command);
     const createdCardRequest =
       await this.cardRequestRepository.create(cardRequest);
+
+    const payload = createdCardRequest.toPrimitives();
+    const event: CardRequestedEventData = {
+      requestId: payload.id,
+      status: 'pending',
+      customer: payload.customer,
+      product: payload.product,
+      forceError: command.forceError,
+    };
+
+    await this.cardRequestEventPublisher.publishRequested(event);
 
     return createdCardRequest.toPrimitives();
   }

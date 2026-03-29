@@ -12,4 +12,7 @@ export const envSchema = Joi.object({
   DB_USER: Joi.string().default('postgres'),
   DB_PASSWORD: Joi.string().allow('').default('postgres'),
   DB_SYNCHRONIZE: Joi.boolean().default(false),
+  KAFKA_BROKERS: Joi.string().default('localhost:9092'),
+  KAFKA_CLIENT_ID: Joi.string().default('io-card-platform'),
+  KAFKA_PROCESSOR_GROUP_ID: Joi.string().default('card-processor-group'),
 });

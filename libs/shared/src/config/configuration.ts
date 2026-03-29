@@ -12,4 +12,13 @@ export const appConfig = () => ({
     password: process.env.DB_PASSWORD ?? 'postgres',
     synchronize: process.env.DB_SYNCHRONIZE === 'true',
   },
+  kafka: {
+    brokers: (process.env.KAFKA_BROKERS ?? 'localhost:9092')
+      .split(',')
+      .map((broker) => broker.trim())
+      .filter(Boolean),
+    clientId: process.env.KAFKA_CLIENT_ID ?? 'io-card-platform',
+    processorGroupId:
+      process.env.KAFKA_PROCESSOR_GROUP_ID ?? 'card-processor-group',
+  },
 });
