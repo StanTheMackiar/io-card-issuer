@@ -10,21 +10,21 @@ import {
   type CardIssuedEventPublisherPort,
 } from '../ports/card-issued-event-publisher.port';
 import {
-  CARD_PROCESSOR_CARD_REPOSITORY,
-  type CardProcessorCardRepositoryPort,
-} from '../ports/card-processor-card.repository.port';
+  CARD_PROCESSOR_REPOSITORY,
+  type CardProcessorRepositoryPort,
+} from '../ports/card-processor.repository.port';
 import {
-  CARD_PROCESSOR_REQUEST_REPOSITORY,
-  type CardProcessorRequestRepositoryPort,
-} from '../ports/card-processor-request.repository.port';
+  CARD_REQUEST_PROCESSOR_REPOSITORY,
+  type CardRequestRepositoryPort,
+} from '../ports/card-request-processor.repository.port';
 
 @Injectable()
 export class ProcessCardRequestedEventUseCase {
   constructor(
-    @Inject(CARD_PROCESSOR_REQUEST_REPOSITORY)
-    private readonly cardRequestRepository: CardProcessorRequestRepositoryPort,
-    @Inject(CARD_PROCESSOR_CARD_REPOSITORY)
-    private readonly cardRepository: CardProcessorCardRepositoryPort,
+    @Inject(CARD_REQUEST_PROCESSOR_REPOSITORY)
+    private readonly cardRequestRepository: CardRequestRepositoryPort,
+    @Inject(CARD_PROCESSOR_REPOSITORY)
+    private readonly cardRepository: CardProcessorRepositoryPort,
     @Inject(CARD_ISSUED_EVENT_PUBLISHER)
     private readonly cardIssuedEventPublisher: CardIssuedEventPublisherPort,
     private readonly cardIssuanceFactory: CardIssuanceFactory,

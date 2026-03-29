@@ -6,10 +6,10 @@ import {
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { type CardProcessorRequestRepositoryPort } from '../../../application/ports/card-processor-request.repository.port';
+import { type CardRequestRepositoryPort } from '../../../application/ports/card-request-processor.repository.port';
 
 @Injectable()
-export class CardProcessorRequestTypeOrmRepository implements CardProcessorRequestRepositoryPort {
+export class CardRequestOrmRepository implements CardRequestRepositoryPort {
   constructor(
     @InjectRepository(CardRequestOrmEntity)
     private readonly repository: Repository<CardRequestOrmEntity>,

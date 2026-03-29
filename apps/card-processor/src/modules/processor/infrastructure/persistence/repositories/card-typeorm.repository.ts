@@ -2,11 +2,11 @@ import { CardOrmEntity } from '@app/shared';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { type CardProcessorCardRepositoryPort } from '../../../application/ports/card-processor-card.repository.port';
+import { type CardProcessorRepositoryPort } from '../../../application/ports/card-processor.repository.port';
 import { Card } from '../../../domain/entities/card';
 
 @Injectable()
-export class CardOrmRepository implements CardProcessorCardRepositoryPort {
+export class CardOrmRepository implements CardProcessorRepositoryPort {
   constructor(
     @InjectRepository(CardOrmEntity)
     private readonly repository: Repository<CardOrmEntity>,
