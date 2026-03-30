@@ -136,3 +136,9 @@ Se optó por separar `issuer` y `processor` desde el inicio para mantener respon
 El monorepo permite compartir configuración, utilidades y módulos transversales sin duplicación, manteniendo al mismo tiempo fronteras explícitas entre servicios. Esto hace más simple el desarrollo local y deja una base cómoda para crecer en módulos, contratos y automatización.
 
 PostgreSQL con Docker Compose se eligió para que el entorno sea reproducible, fácil de levantar y suficientemente cercano a un escenario real. Además, deja el terreno listo para trabajar con restricciones, persistencia consistente e idempotencia cuando empiece a modelarse el dominio.
+
+## Interpretaciones Aplicadas
+
+Para esta implementación se asumió que un cliente solo puede tener una solicitud de tarjeta por documento, independientemente del estado final de esa solicitud. Eso significa que, si una solicitud previa quedó en `rejected`, una nueva petición con el mismo documento y una `idempotencyKey` distinta también será rechazada.
+
+La `idempotencyKey` se usa únicamente para devolver la misma respuesta cuando el cliente reintenta exactamente la misma operación. Si la intención es iniciar una solicitud nueva, debe cambiar la `idempotencyKey`; aun así, con la interpretación aplicada en este reto, el documento sigue siendo único dentro del sistema.
