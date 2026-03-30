@@ -60,10 +60,16 @@ Correr las migraciones
 npm run migration:run
 ```
 
-Levantar ambas aplicaciones
+Para que el flujo completo funcione, deben estar arriba al mismo tiempo:
+
+- PostgreSQL y Kafka con `docker compose`
+- `card-issuer`
+- `card-processor`
+
+Levantar ambas aplicaciones en desarrollo
 
 ```bash
-npm run dev
+npm run start:dev
 ```
 
 Esto inicia:
@@ -90,14 +96,25 @@ Respuesta esperada:
 ## Comandos Útiles
 
 ```bash
-# desarrollo
-npm run dev
-
-# solo issuer
+# ambas apps en desarrollo
 npm run start:dev
 
+# ambas apps en runtime local
+npm run start
+
+# ambas apps desde dist
+npm run start:prod
+
+# solo issuer
+npm run start:issuer
+npm run start:issuer:dev
+npm run start:issuer:debug
+npm run start:issuer:prod
+
 # solo processor
+npm run start:processor
 npm run start:processor:dev
+npm run start:processor:prod
 
 # compilación
 npm run build
@@ -119,6 +136,7 @@ Comandos frecuentes:
 ```bash
 docker compose up -d
 docker compose logs -f postgres
+docker compose logs -f kafka
 docker compose down
 ```
 
