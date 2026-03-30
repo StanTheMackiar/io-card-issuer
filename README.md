@@ -161,8 +161,7 @@ npm run test:e2e
 
 ## Infraestructura Local
 
-La base de datos se levanta con [`docker-compose.yml`](/Users/stanlycalle/Desktop/io-card-issuer/docker-compose.yml) usando PostgreSQL 16.
-Kafka también se levanta desde el mismo [`docker-compose.yml`](/Users/stanlycalle/Desktop/io-card-issuer/docker-compose.yml).
+La base de datos PostgreSQL 16 y Kafka se levantan con docker compose.
 
 Comandos frecuentes:
 
