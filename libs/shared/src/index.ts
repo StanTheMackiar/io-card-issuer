@@ -13,6 +13,7 @@ export { HealthModule } from './health/health.module';
 export { getKafkaConfigFromEnv } from './kafka/kafka.config';
 export { nextCloudEventId } from './kafka/cloud-event-id';
 export { KAFKA_TOPICS } from './kafka/kafka.constants';
+export { ensureKafkaTopics } from './kafka/ensure-kafka-topics';
 export type {
   CardIssuedEvent,
   CardIssuedEventData,

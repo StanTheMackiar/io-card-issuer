@@ -33,7 +33,7 @@ Variables principales:
 - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`: conexión a PostgreSQL.
 - `DB_SYNCHRONIZE`: sincronización automática de entidades.
 
-### 3. Levantar PostgreSQL
+### 3. Levantar PostgreSQL y Kafka
 
 ```bash
 docker compose up -d
@@ -44,7 +44,10 @@ Verifica el estado si hace falta:
 ```bash
 docker compose ps
 docker compose logs -f postgres
+docker compose logs -f kafka
 ```
+
+Es recomendable esperar a que Kafka termine de iniciar antes de levantar las aplicaciones.
 
 ### 4. Correr las migraciones y levantar ambas aplicaciones
 
@@ -106,6 +109,7 @@ npm run test:e2e
 ## Infraestructura Local
 
 La base de datos se levanta con [`docker-compose.yml`](/Users/stanlycalle/Desktop/io-card-issuer/docker-compose.yml) usando PostgreSQL 16.
+Kafka también se levanta desde el mismo [`docker-compose.yml`](/Users/stanlycalle/Desktop/io-card-issuer/docker-compose.yml).
 
 Comandos frecuentes:
 

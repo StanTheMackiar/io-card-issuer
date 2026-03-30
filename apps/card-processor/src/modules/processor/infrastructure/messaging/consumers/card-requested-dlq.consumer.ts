@@ -1,4 +1,8 @@
-import { KAFKA_TOPICS, type CardRequestedDlqEvent } from '@app/shared';
+import {
+  ensureKafkaTopics,
+  KAFKA_TOPICS,
+  type CardRequestedDlqEvent,
+} from '@app/shared';
 import {
   Injectable,
   Logger,
@@ -25,6 +29,11 @@ export class CardRequestedDlqConsumer implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleInit(): Promise<void> {
+    await ensureKafkaTopics({
+      clientId: this.configService.getOrThrow<string>('kafka.clientId'),
+      brokers: this.configService.getOrThrow<string[]>('kafka.brokers'),
+      topics: [KAFKA_TOPICS.CARD_REQUESTED_V1_DLQ],
+    });
     await this.consumer.connect();
     await this.consumer.subscribe({
       topic: KAFKA_TOPICS.CARD_REQUESTED_V1_DLQ,
