@@ -28,8 +28,7 @@ import { ProcessCardRequestedEventUseCase } from '../../../application/use-cases
 export class CardRequestedConsumer implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(CardRequestedConsumer.name);
   private static readonly retryDelaysMs = [1000, 2000, 4000] as const;
-  private static readonly maxRetryAttempts =
-    CardRequestedConsumer.retryDelaysMs.length;
+  private static readonly maxRetryAttempts = 3;
   private readonly consumer: Consumer;
 
   constructor(
@@ -130,7 +129,7 @@ export class CardRequestedConsumer implements OnModuleInit, OnModuleDestroy {
     let lastError: unknown;
 
     for (
-      let attempt = 0;
+      let attempt = 1;
       attempt <= CardRequestedConsumer.maxRetryAttempts;
       attempt += 1
     ) {
@@ -152,7 +151,7 @@ export class CardRequestedConsumer implements OnModuleInit, OnModuleDestroy {
           break;
         }
 
-        const delayMs = CardRequestedConsumer.retryDelaysMs[attempt];
+        const delayMs = CardRequestedConsumer.retryDelaysMs[attempt - 1];
 
         this.logger.warn(
           `Retrying card request ${event.requestId} in ${delayMs}ms after failure: ${errorMessage}`,

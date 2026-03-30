@@ -51,7 +51,14 @@ export class Card {
 }
 
 function generateCardNumber(): string {
-  return `4${String(randomInt(0, 10 ** 15)).padStart(15, '0')}`;
+  return `4${generateCardNumberBody()}`;
+}
+
+function generateCardNumberBody(): string {
+  const firstChunk = String(randomInt(0, 1_000_000_000)).padStart(9, '0');
+  const secondChunk = String(randomInt(0, 1_000_000)).padStart(6, '0');
+
+  return `${firstChunk}${secondChunk}`;
 }
 
 function generateExpirationDate(): string {
