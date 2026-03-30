@@ -67,6 +67,15 @@ export class CardRequestOrmRepository implements CardRequestRepositoryPort {
     return this.rehydrateCardRequest(cardRequest);
   }
 
+  async registerProcessingAttempt(requestId: string): Promise<void> {
+    await this.repository.update(
+      { id: requestId },
+      {
+        processingAttempts: () => 'processing_attempts + 1',
+      },
+    );
+  }
+
   async updateStatus(
     requestId: string,
     status: CardRequestStatus,
@@ -90,7 +99,6 @@ export class CardRequestOrmRepository implements CardRequestRepositoryPort {
       { id: requestId },
       {
         lastProcessingError: errorMessage,
-        processingAttempts: () => 'processing_attempts + 1',
       },
     );
   }

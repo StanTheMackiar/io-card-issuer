@@ -134,6 +134,9 @@ export class CardRequestedConsumer implements OnModuleInit, OnModuleDestroy {
       attempt += 1
     ) {
       try {
+        await this.cardRequestRepository.registerProcessingAttempt(
+          event.requestId,
+        );
         await this.processCardRequestedEventUseCase.execute(event);
 
         return;

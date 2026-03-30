@@ -21,6 +21,7 @@ describe('ProcessCardRequestedEventUseCase', () => {
   beforeEach(() => {
     cardRequestRepository = {
       findById: jest.fn(),
+      registerProcessingAttempt: jest.fn(),
       registerProcessingFailure: jest.fn(),
       updateStatus: jest.fn(),
     };
