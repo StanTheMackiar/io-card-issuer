@@ -93,6 +93,39 @@ Respuesta esperada:
 }
 ```
 
+### 6. Probar el API de issue card
+
+Ejemplo para crear una solicitud de emisión de tarjeta en `card-issuer`:
+
+```bash
+curl --request POST 'http://localhost:3000/api/cards/issue' \
+  --header 'Content-Type: application/json' \
+  --header 'Idempotency-Key: 8d6a6e3d-4b9d-4c2c-9d66-1f0d7f6b8c10' \
+  --data '{
+    "customer": {
+      "documentType": "DNI",
+      "documentNumber": "12345678",
+      "fullName": "Juan Perez",
+      "age": 29,
+      "email": "juan.perez@example.com"
+    },
+    "product": {
+      "type": "VISA",
+      "currency": "PEN"
+    },
+    "forceError": false
+  }'
+```
+
+Respuesta esperada:
+
+```json
+{
+  "requestId": "2c1d2f4b-7f7c-4b97-b0d3-c5f4e9c8f1a2",
+  "status": "pending"
+}
+```
+
 ## Comandos Útiles
 
 ```bash
