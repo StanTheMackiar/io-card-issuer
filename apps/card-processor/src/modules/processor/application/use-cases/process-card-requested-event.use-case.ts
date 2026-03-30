@@ -86,9 +86,7 @@ export class ProcessCardRequestedEventUseCase {
       card: {
         id: cardPrimitives.id,
         processorCardReference: cardPrimitives.processorCardReference,
-        cardNumber: cardPrimitives.cardNumber,
         expirationDate: cardPrimitives.expirationDate,
-        cvv: cardPrimitives.cvv,
         lastFour: cardPrimitives.lastFour,
       },
     });

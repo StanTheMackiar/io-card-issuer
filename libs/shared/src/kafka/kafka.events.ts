@@ -23,9 +23,7 @@ export type CardIssuedEventData = {
   card: {
     id: string;
     processorCardReference: string;
-    cardNumber: string;
     expirationDate: string;
-    cvv: string;
     lastFour: string;
   };
 };

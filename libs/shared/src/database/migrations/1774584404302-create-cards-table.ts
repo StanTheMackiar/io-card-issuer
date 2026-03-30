@@ -39,6 +39,12 @@ export class CreateCardsTable1774584404302 implements MigrationInterface {
             isNullable: false,
           },
           {
+            name: 'expiration_date',
+            type: 'char',
+            length: '5',
+            isNullable: false,
+          },
+          {
             name: 'status',
             type: 'enum',
             enum: ['created', 'active', 'blocked', 'cancelled'],

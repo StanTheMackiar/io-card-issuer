@@ -12,34 +12,34 @@ export class CardOrmRepository implements CardProcessorRepositoryPort {
     private readonly repository: Repository<CardOrmEntity>,
   ) {}
 
+  rehydrate(entity: CardOrmEntity): Card {
+    return Card.rehydrate({
+      id: entity.id,
+      cardRequestId: entity.cardRequestId,
+      processorCardReference: entity.processorCardReference,
+      expirationDate: entity.expirationDate,
+      lastFour: entity.lastFour,
+      status: entity.status,
+      issuedAt: entity.issuedAt,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    });
+  }
+
   async create(card: Card): Promise<Card> {
     const primitives = card.toPrimitives();
     const entity: CardOrmEntity = this.repository.create({
       id: primitives.id,
       cardRequestId: primitives.cardRequestId,
       processorCardReference: primitives.processorCardReference,
-      cardNumber: primitives.cardNumber,
       expirationDate: primitives.expirationDate,
-      cvv: primitives.cvv,
       lastFour: primitives.lastFour,
       status: primitives.status,
       issuedAt: primitives.issuedAt,
     });
     const savedEntity: CardOrmEntity = await this.repository.save(entity);
 
-    return Card.rehydrate({
-      id: savedEntity.id,
-      cardRequestId: savedEntity.cardRequestId,
-      processorCardReference: savedEntity.processorCardReference,
-      cardNumber: savedEntity.cardNumber,
-      expirationDate: savedEntity.expirationDate,
-      cvv: savedEntity.cvv,
-      lastFour: savedEntity.lastFour,
-      status: savedEntity.status,
-      issuedAt: savedEntity.issuedAt,
-      createdAt: savedEntity.createdAt,
-      updatedAt: savedEntity.updatedAt,
-    });
+    return this.rehydrate(savedEntity);
   }
 
   async findByCardRequestId(cardRequestId: string): Promise<Card | null> {
@@ -51,18 +51,6 @@ export class CardOrmRepository implements CardProcessorRepositoryPort {
       return null;
     }
 
-    return Card.rehydrate({
-      id: entity.id,
-      cardRequestId: entity.cardRequestId,
-      processorCardReference: entity.processorCardReference,
-      cardNumber: entity.cardNumber,
-      expirationDate: entity.expirationDate,
-      cvv: entity.cvv,
-      lastFour: entity.lastFour,
-      status: entity.status,
-      issuedAt: entity.issuedAt,
-      createdAt: entity.createdAt,
-      updatedAt: entity.updatedAt,
-    });
+    return this.rehydrate(entity);
   }
 }

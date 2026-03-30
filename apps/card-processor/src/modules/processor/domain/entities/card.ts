@@ -5,9 +5,7 @@ type CardProps = {
   id: string;
   cardRequestId: string;
   processorCardReference: string;
-  cardNumber: string;
   expirationDate: string;
-  cvv: string;
   lastFour: string;
   status: CardStatus;
   issuedAt: Date;
@@ -25,14 +23,16 @@ export class Card {
   static create(props: CreateCardProps): Card {
     const now = new Date();
     const cardNumber = generateCardNumber();
+    /* The challenge mentions constructing the full card, including card number and CVV. We generate them here as part of the issuance flow, but keep those values transient: in production they should not be persisted or emitted.*/
+
+    const cvv = generateCvv();
+    void cvv;
 
     return new Card({
       id: randomUUID(),
       cardRequestId: props.cardRequestId,
       processorCardReference: randomUUID(),
-      cardNumber,
       expirationDate: generateExpirationDate(),
-      cvv: generateCvv(),
       lastFour: cardNumber.slice(-4),
       status: CardStatus.CREATED,
       issuedAt: now,
