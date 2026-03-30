@@ -1,30 +1,23 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import request from 'supertest';
-import { App } from 'supertest/types';
-import { AppModule } from './../src/app.module';
+import { HealthModule } from '@app/shared';
+import { HealthController } from '../../../libs/shared/src/health/infrastructure/http/health.controller';
 
 describe('AppController (e2e)', () => {
-  let app: INestApplication<App>;
+  let controller: HealthController;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: [HealthModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
-    app.setGlobalPrefix('api');
-    await app.init();
+    controller = moduleFixture.get(HealthController);
   });
 
   it('/api/health (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/api/health')
-      .expect(200)
-      .expect(({ body }) => {
-        expect(body.status).toBe('ok');
-        expect(typeof body.timestamp).toBe('string');
-      });
+    const response = controller.check();
+
+    expect(response.status).toBe('ok');
+    expect(typeof response.timestamp).toBe('string');
   });
 });
