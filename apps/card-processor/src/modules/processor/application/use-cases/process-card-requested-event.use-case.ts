@@ -45,6 +45,15 @@ export class ProcessCardRequestedEventUseCase {
     }
 
     const cardRequestPrimitives = cardRequest.toPrimitives();
+    const existingCard = await this.cardRepository.findByCardRequestId(
+      cardRequestPrimitives.id,
+    );
+
+    if (existingCard) {
+      await this.publishIssuedCard(cardRequestPrimitives.id, existingCard);
+
+      return;
+    }
 
     await sleep(400);
 
@@ -56,23 +65,31 @@ export class ProcessCardRequestedEventUseCase {
 
     const card = this.cardIssuanceFactory.create(cardRequestPrimitives.id);
     const createdCard = await this.cardRepository.create(card);
-    const createdCardPrimitives = createdCard.toPrimitives();
+
+    await this.publishIssuedCard(cardRequestPrimitives.id, createdCard);
+  }
+
+  private async publishIssuedCard(
+    requestId: string,
+    card: Awaited<ReturnType<CardProcessorRepositoryPort['create']>>,
+  ): Promise<void> {
+    const cardPrimitives = card.toPrimitives();
 
     await this.cardRequestRepository.updateStatus(
-      cardRequestPrimitives.id,
+      requestId,
       CardRequestStatus.ISSUED,
     );
 
     await this.cardIssuedEventPublisher.publishIssued({
-      requestId: cardRequestPrimitives.id,
+      requestId,
       status: 'issued',
       card: {
-        id: createdCardPrimitives.id,
-        processorCardReference: createdCardPrimitives.processorCardReference,
-        cardNumber: createdCardPrimitives.cardNumber,
-        expirationDate: createdCardPrimitives.expirationDate,
-        cvv: createdCardPrimitives.cvv,
-        lastFour: createdCardPrimitives.lastFour,
+        id: cardPrimitives.id,
+        processorCardReference: cardPrimitives.processorCardReference,
+        cardNumber: cardPrimitives.cardNumber,
+        expirationDate: cardPrimitives.expirationDate,
+        cvv: cardPrimitives.cvv,
+        lastFour: cardPrimitives.lastFour,
       },
     });
   }

@@ -41,4 +41,28 @@ export class CardOrmRepository implements CardProcessorRepositoryPort {
       updatedAt: savedEntity.updatedAt,
     });
   }
+
+  async findByCardRequestId(cardRequestId: string): Promise<Card | null> {
+    const entity = await this.repository.findOne({
+      where: { cardRequestId },
+    });
+
+    if (!entity) {
+      return null;
+    }
+
+    return Card.rehydrate({
+      id: entity.id,
+      cardRequestId: entity.cardRequestId,
+      processorCardReference: entity.processorCardReference,
+      cardNumber: entity.cardNumber,
+      expirationDate: entity.expirationDate,
+      cvv: entity.cvv,
+      lastFour: entity.lastFour,
+      status: entity.status,
+      issuedAt: entity.issuedAt,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    });
+  }
 }
