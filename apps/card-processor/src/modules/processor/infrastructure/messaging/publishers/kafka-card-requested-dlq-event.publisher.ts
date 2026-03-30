@@ -11,7 +11,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Kafka, type Producer } from 'kafkajs';
+import { Kafka, Partitioners, type Producer } from 'kafkajs';
 import { CardRequestedDlqEventPublisherPort } from '../../../application/ports/card-requested-dlq-event-publisher.port';
 
 @Injectable()
@@ -29,7 +29,9 @@ export class KafkaCardRequestedDlqEventPublisher
       brokers: this.configService.getOrThrow<string[]>('kafka.brokers'),
     });
 
-    this.producer = kafka.producer();
+    this.producer = kafka.producer({
+      createPartitioner: Partitioners.LegacyPartitioner,
+    });
   }
 
   async onModuleInit(): Promise<void> {
