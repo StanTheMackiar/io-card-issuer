@@ -1,4 +1,8 @@
-import { CardRequest, CardRequestOrmEntity } from '@app/shared';
+import {
+  CardRequest,
+  CardRequestOrmEntity,
+  TypeOrmTransactionContext,
+} from '@app/shared';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
@@ -11,8 +15,19 @@ import {
 export class CardRequestOrmRepository implements CardRequestRepositoryPort {
   constructor(
     @InjectRepository(CardRequestOrmEntity)
-    private readonly repository: Repository<CardRequestOrmEntity>,
+    private readonly baseRepository: Repository<CardRequestOrmEntity>,
+    private readonly transactionContext: TypeOrmTransactionContext,
   ) {}
+
+  private get repository(): Repository<CardRequestOrmEntity> {
+    const entityManager = this.transactionContext.getEntityManager();
+
+    if (!entityManager) {
+      return this.baseRepository;
+    }
+
+    return entityManager.getRepository(CardRequestOrmEntity);
+  }
 
   private rehydrate(entity: CardRequestOrmEntity): CardRequest {
     return CardRequest.rehydrate({
@@ -126,16 +141,12 @@ export class CardRequestOrmRepository implements CardRequestRepositoryPort {
     requestId: string,
     publishedAt: Date,
   ): Promise<void> {
-    await this.repository.increment(
-      { id: requestId },
-      'eventPublishAttempts',
-      1,
-    );
     await this.repository.update(
       { id: requestId },
       {
         eventPublishedAt: publishedAt,
         lastPublishError: null,
+        eventPublishAttempts: () => 'event_publish_attempts + 1',
       },
     );
   }
@@ -144,15 +155,11 @@ export class CardRequestOrmRepository implements CardRequestRepositoryPort {
     requestId: string,
     errorMessage: string,
   ): Promise<void> {
-    await this.repository.increment(
-      { id: requestId },
-      'eventPublishAttempts',
-      1,
-    );
     await this.repository.update(
       { id: requestId },
       {
         lastPublishError: errorMessage,
+        eventPublishAttempts: () => 'event_publish_attempts + 1',
       },
     );
   }

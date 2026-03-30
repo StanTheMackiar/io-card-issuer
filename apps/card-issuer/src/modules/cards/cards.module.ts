@@ -1,4 +1,10 @@
-import { CardOrmEntity, CardRequestOrmEntity } from '@app/shared';
+import {
+  CardOrmEntity,
+  CardRequestOrmEntity,
+  TRANSACTION_MANAGER,
+  TypeOrmTransactionContext,
+  TypeOrmTransactionManager,
+} from '@app/shared';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CARD_REQUEST_EVENT_PUBLISHER } from './application/ports/card-request-event-publisher.port';
@@ -17,6 +23,8 @@ import { CardRequestPublicationScheduler } from './infrastructure/scheduling/car
   providers: [
     CreateCardRequestUseCase,
     PublishPendingCardRequestEventsUseCase,
+    TypeOrmTransactionContext,
+    TypeOrmTransactionManager,
     CardRequestOrmRepository,
     KafkaTopicsBootstrap,
     KafkaCardRequestEventPublisher,
@@ -28,6 +36,10 @@ import { CardRequestPublicationScheduler } from './infrastructure/scheduling/car
     {
       provide: CARD_REQUEST_EVENT_PUBLISHER,
       useExisting: KafkaCardRequestEventPublisher,
+    },
+    {
+      provide: TRANSACTION_MANAGER,
+      useExisting: TypeOrmTransactionManager,
     },
   ],
 })

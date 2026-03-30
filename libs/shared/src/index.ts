@@ -1,6 +1,12 @@
 export { appConfig } from './config/configuration';
 export { envSchema } from './config/env.schema';
 export { DatabaseModule } from './database/database.module';
+export {
+  TRANSACTION_MANAGER,
+  type TransactionManagerPort,
+} from './database/transactions/transaction-manager.port';
+export { TypeOrmTransactionContext } from './database/transactions/typeorm-transaction-context';
+export { TypeOrmTransactionManager } from './database/transactions/typeorm-transaction-manager';
 export { CardOrmEntity, CardRequestOrmEntity } from './database/entities';
 export { CardRequestStatus } from './database/enums/card-request-status.enum';
 export { CardStatus } from './database/enums/card-status.enum';

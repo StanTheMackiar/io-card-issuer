@@ -1,4 +1,9 @@
-import { CardRequest, CardRequestStatus, CardStatus } from '@app/shared';
+import {
+  CardRequest,
+  CardRequestStatus,
+  CardStatus,
+  type TransactionManagerPort,
+} from '@app/shared';
 import { Card } from '../../domain/entities/card';
 import { CardIssuanceFactory } from '../../domain/services/card-issuance.factory';
 import type { CardIssuedEventPublisherPort } from '../ports/card-issued-event-publisher.port';
@@ -10,6 +15,7 @@ describe('ProcessCardRequestedEventUseCase', () => {
   let cardRequestRepository: jest.Mocked<CardRequestRepositoryPort>;
   let cardRepository: jest.Mocked<CardProcessorRepositoryPort>;
   let cardIssuedEventPublisher: jest.Mocked<CardIssuedEventPublisherPort>;
+  let transactionManager: jest.Mocked<TransactionManagerPort>;
   let useCase: ProcessCardRequestedEventUseCase;
 
   beforeEach(() => {
@@ -32,6 +38,7 @@ describe('ProcessCardRequestedEventUseCase', () => {
       cardRequestRepository,
       cardRepository,
       cardIssuedEventPublisher,
+      transactionManager,
       new CardIssuanceFactory(),
     );
   });

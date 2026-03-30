@@ -1,10 +1,18 @@
-import { CardRequest, CardRequestStatus } from '@app/shared';
+import {
+  CardRequest,
+  CardRequestStatus,
+  type TransactionManagerPort,
+} from '@app/shared';
 import { CustomerAlreadyHasCardRequestError } from '../../domain/errors/customer-already-has-card-request.error';
 import type { CardRequestEventPublisherPort } from '../ports/card-request-event-publisher.port';
 import type { CardRequestRepositoryPort } from '../ports/card-request-repository.port';
 import { CreateCardRequestUseCase } from './create-card-request.use-case';
 
 describe('CreateCardRequestUseCase', () => {
+  const transactionManager: TransactionManagerPort = {
+    runInTransaction: (work) => work(),
+  };
+
   const command = {
     idempotencyKey: 'idem-123',
     customer: {
@@ -41,7 +49,11 @@ describe('CreateCardRequestUseCase', () => {
       publishRequested,
     };
 
-    const useCase = new CreateCardRequestUseCase(repository, publisher);
+    const useCase = new CreateCardRequestUseCase(
+      repository,
+      transactionManager,
+      publisher,
+    );
 
     const result = await useCase.execute(command);
 
@@ -94,7 +106,11 @@ describe('CreateCardRequestUseCase', () => {
       publishRequested,
     };
 
-    const useCase = new CreateCardRequestUseCase(repository, publisher);
+    const useCase = new CreateCardRequestUseCase(
+      repository,
+      transactionManager,
+      publisher,
+    );
 
     const result = await useCase.execute(command);
 
@@ -120,7 +136,11 @@ describe('CreateCardRequestUseCase', () => {
       publishRequested,
     };
 
-    const useCase = new CreateCardRequestUseCase(repository, publisher);
+    const useCase = new CreateCardRequestUseCase(
+      repository,
+      transactionManager,
+      publisher,
+    );
 
     await expect(
       useCase.execute({
@@ -152,7 +172,11 @@ describe('CreateCardRequestUseCase', () => {
       publishRequested: jest.fn().mockRejectedValue(new Error('kafka down')),
     };
 
-    const useCase = new CreateCardRequestUseCase(repository, publisher);
+    const useCase = new CreateCardRequestUseCase(
+      repository,
+      transactionManager,
+      publisher,
+    );
 
     const result = await useCase.execute(command);
 
@@ -183,7 +207,11 @@ describe('CreateCardRequestUseCase', () => {
       publishRequested: jest.fn().mockResolvedValue(undefined),
     };
 
-    const useCase = new CreateCardRequestUseCase(repository, publisher);
+    const useCase = new CreateCardRequestUseCase(
+      repository,
+      transactionManager,
+      publisher,
+    );
 
     const result = await useCase.execute(command);
 
@@ -224,7 +252,11 @@ describe('CreateCardRequestUseCase', () => {
       publishRequested: jest.fn(),
     };
 
-    const useCase = new CreateCardRequestUseCase(repository, publisher);
+    const useCase = new CreateCardRequestUseCase(
+      repository,
+      transactionManager,
+      publisher,
+    );
 
     await expect(useCase.execute(command)).rejects.toBeInstanceOf(
       CustomerAlreadyHasCardRequestError,

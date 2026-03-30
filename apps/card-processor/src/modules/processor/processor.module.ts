@@ -1,4 +1,10 @@
-import { CardOrmEntity, CardRequestOrmEntity } from '@app/shared';
+import {
+  CardOrmEntity,
+  CardRequestOrmEntity,
+  TRANSACTION_MANAGER,
+  TypeOrmTransactionContext,
+  TypeOrmTransactionManager,
+} from '@app/shared';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CARD_ISSUED_EVENT_PUBLISHER } from './application/ports/card-issued-event-publisher.port';
@@ -21,6 +27,8 @@ import { CardOrmRepository } from './infrastructure/persistence/repositories/car
   providers: [
     ProcessCardRequestedEventUseCase,
     CardIssuanceFactory,
+    TypeOrmTransactionContext,
+    TypeOrmTransactionManager,
     CardIssuedConsumer,
     CardRequestedConsumer,
     CardRequestedDlqConsumer,
@@ -44,6 +52,10 @@ import { CardOrmRepository } from './infrastructure/persistence/repositories/car
     {
       provide: CARD_REQUESTED_DLQ_EVENT_PUBLISHER,
       useExisting: KafkaCardRequestedDlqEventPublisher,
+    },
+    {
+      provide: TRANSACTION_MANAGER,
+      useExisting: TypeOrmTransactionManager,
     },
   ],
 })

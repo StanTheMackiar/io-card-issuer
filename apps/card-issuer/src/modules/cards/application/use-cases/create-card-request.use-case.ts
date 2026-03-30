@@ -1,5 +1,11 @@
-import { CardRequest, type CardRequestedEventData } from '@app/shared';
+import {
+  CardRequest,
+  TRANSACTION_MANAGER,
+  type CardRequestedEventData,
+  type TransactionManagerPort,
+} from '@app/shared';
 import { Inject, Injectable } from '@nestjs/common';
+import { CustomerAlreadyHasCardRequestError } from '../../domain/errors/customer-already-has-card-request.error';
 import {
   CreateCardRequestCommand,
   CreateCardRequestResult,
@@ -10,13 +16,14 @@ import {
 } from '../ports/card-request-event-publisher.port';
 import type { CardRequestRepositoryPort } from '../ports/card-request-repository.port';
 import { CARD_REQUEST_REPOSITORY } from '../ports/card-request-repository.port';
-import { CustomerAlreadyHasCardRequestError } from '../../domain/errors/customer-already-has-card-request.error';
 
 @Injectable()
 export class CreateCardRequestUseCase {
   constructor(
     @Inject(CARD_REQUEST_REPOSITORY)
     private readonly cardRequestRepository: CardRequestRepositoryPort,
+    @Inject(TRANSACTION_MANAGER)
+    private readonly transactionManager: TransactionManagerPort,
     @Inject(CARD_REQUEST_EVENT_PUBLISHER)
     private readonly cardRequestEventPublisher: CardRequestEventPublisherPort,
   ) {}
@@ -24,34 +31,49 @@ export class CreateCardRequestUseCase {
   async execute(
     command: CreateCardRequestCommand,
   ): Promise<CreateCardRequestResult> {
-    const existingCardRequest =
-      await this.cardRequestRepository.findByIdempotencyKey(
-        command.idempotencyKey,
-      );
+    const { cardRequest, wasCreated } =
+      await this.transactionManager.runInTransaction(async () => {
+        const existingCardRequest =
+          await this.cardRequestRepository.findByIdempotencyKey(
+            command.idempotencyKey,
+          );
 
-    if (existingCardRequest) {
-      return existingCardRequest.toPrimitives();
+        if (existingCardRequest) {
+          return {
+            cardRequest: existingCardRequest,
+            wasCreated: false,
+          };
+        }
+
+        const existingCustomerCardRequest =
+          await this.cardRequestRepository.findByCustomerDocument(
+            command.customer.documentType,
+            command.customer.documentNumber,
+          );
+
+        if (existingCustomerCardRequest) {
+          throw new CustomerAlreadyHasCardRequestError(
+            command.customer.documentNumber,
+          );
+        }
+
+        const newCardRequest = CardRequest.create(command);
+        const createdCardRequest = await this.cardRequestRepository.create(
+          newCardRequest,
+          command.forceError,
+        );
+
+        return {
+          cardRequest: createdCardRequest,
+          wasCreated: true,
+        };
+      });
+
+    if (!wasCreated) {
+      return cardRequest.toPrimitives();
     }
 
-    const existingCustomerCardRequest =
-      await this.cardRequestRepository.findByCustomerDocument(
-        command.customer.documentType,
-        command.customer.documentNumber,
-      );
-
-    if (existingCustomerCardRequest) {
-      throw new CustomerAlreadyHasCardRequestError(
-        command.customer.documentNumber,
-      );
-    }
-
-    const cardRequest = CardRequest.create(command);
-    const createdCardRequest = await this.cardRequestRepository.create(
-      cardRequest,
-      command.forceError,
-    );
-
-    const payload = createdCardRequest.toPrimitives();
+    const payload = cardRequest.toPrimitives();
     const event: CardRequestedEventData = {
       requestId: payload.id,
       forceError: command.forceError,
@@ -68,7 +90,7 @@ export class CreateCardRequestUseCase {
         errorMessage,
       );
 
-      return createdCardRequest.toPrimitives();
+      return cardRequest.toPrimitives();
     }
 
     try {
@@ -77,9 +99,9 @@ export class CreateCardRequestUseCase {
         new Date(),
       );
     } catch {
-      return createdCardRequest.toPrimitives();
+      return cardRequest.toPrimitives();
     }
 
-    return createdCardRequest.toPrimitives();
+    return cardRequest.toPrimitives();
   }
 }

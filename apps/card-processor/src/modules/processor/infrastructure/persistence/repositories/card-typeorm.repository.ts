@@ -1,4 +1,4 @@
-import { CardOrmEntity } from '@app/shared';
+import { CardOrmEntity, TypeOrmTransactionContext } from '@app/shared';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -9,10 +9,21 @@ import { Card } from '../../../domain/entities/card';
 export class CardOrmRepository implements CardProcessorRepositoryPort {
   constructor(
     @InjectRepository(CardOrmEntity)
-    private readonly repository: Repository<CardOrmEntity>,
+    private readonly baseRepository: Repository<CardOrmEntity>,
+    private readonly transactionContext: TypeOrmTransactionContext,
   ) {}
 
-  rehydrate(entity: CardOrmEntity): Card {
+  private get repository(): Repository<CardOrmEntity> {
+    const entityManager = this.transactionContext.getEntityManager();
+
+    if (!entityManager) {
+      return this.baseRepository;
+    }
+
+    return entityManager.getRepository(CardOrmEntity);
+  }
+
+  private rehydrate(entity: CardOrmEntity): Card {
     return Card.rehydrate({
       id: entity.id,
       cardRequestId: entity.cardRequestId,

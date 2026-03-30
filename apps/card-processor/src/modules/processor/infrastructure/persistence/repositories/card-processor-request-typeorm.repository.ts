@@ -1,6 +1,7 @@
 import {
   CardRequest,
   CardRequestOrmEntity,
+  TypeOrmTransactionContext,
   type CardRequestStatus,
 } from '@app/shared';
 import { Injectable } from '@nestjs/common';
@@ -12,8 +13,19 @@ import { type CardRequestRepositoryPort } from '../../../application/ports/card-
 export class CardRequestOrmRepository implements CardRequestRepositoryPort {
   constructor(
     @InjectRepository(CardRequestOrmEntity)
-    private readonly repository: Repository<CardRequestOrmEntity>,
+    private readonly baseRepository: Repository<CardRequestOrmEntity>,
+    private readonly transactionContext: TypeOrmTransactionContext,
   ) {}
+
+  private get repository(): Repository<CardRequestOrmEntity> {
+    const entityManager = this.transactionContext.getEntityManager();
+
+    if (!entityManager) {
+      return this.baseRepository;
+    }
+
+    return entityManager.getRepository(CardRequestOrmEntity);
+  }
 
   private rehydrateCardRequest(cardRequest: CardRequestOrmEntity): CardRequest {
     return CardRequest.rehydrate({
@@ -74,11 +86,11 @@ export class CardRequestOrmRepository implements CardRequestRepositoryPort {
     requestId: string,
     errorMessage: string,
   ): Promise<void> {
-    await this.repository.increment({ id: requestId }, 'processingAttempts', 1);
     await this.repository.update(
       { id: requestId },
       {
         lastProcessingError: errorMessage,
+        processingAttempts: () => 'processing_attempts + 1',
       },
     );
   }

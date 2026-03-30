@@ -1,8 +1,10 @@
 import {
   CardRequestStatus,
+  TRANSACTION_MANAGER,
   randomBoolean,
   sleep,
   type CardRequestedEventData,
+  type TransactionManagerPort,
 } from '@app/shared';
 import { Inject, Injectable } from '@nestjs/common';
 import { CardIssuanceFactory } from '../../domain/services/card-issuance.factory';
@@ -18,7 +20,6 @@ import {
   CARD_REQUEST_PROCESSOR_REPOSITORY,
   type CardRequestRepositoryPort,
 } from '../ports/card-request-processor.repository.port';
-
 @Injectable()
 export class ProcessCardRequestedEventUseCase {
   constructor(
@@ -28,6 +29,8 @@ export class ProcessCardRequestedEventUseCase {
     private readonly cardRepository: CardProcessorRepositoryPort,
     @Inject(CARD_ISSUED_EVENT_PUBLISHER)
     private readonly cardIssuedEventPublisher: CardIssuedEventPublisherPort,
+    @Inject(TRANSACTION_MANAGER)
+    private readonly transactionManager: TransactionManagerPort,
     private readonly cardIssuanceFactory: CardIssuanceFactory,
   ) {}
 
@@ -50,6 +53,10 @@ export class ProcessCardRequestedEventUseCase {
     );
 
     if (existingCard) {
+      await this.cardRequestRepository.updateStatus(
+        cardRequestPrimitives.id,
+        CardRequestStatus.ISSUED,
+      );
       await this.publishIssuedCard(cardRequestPrimitives.id, existingCard);
 
       return;
@@ -63,10 +70,34 @@ export class ProcessCardRequestedEventUseCase {
       );
     }
 
-    const card = this.cardIssuanceFactory.create(cardRequestPrimitives.id);
-    const createdCard = await this.cardRepository.create(card);
+    const cardToPublish = await this.transactionManager.runInTransaction(
+      async () => {
+        const existingCard = await this.cardRepository.findByCardRequestId(
+          cardRequestPrimitives.id,
+        );
 
-    await this.publishIssuedCard(cardRequestPrimitives.id, createdCard);
+        if (existingCard) {
+          await this.cardRequestRepository.updateStatus(
+            cardRequestPrimitives.id,
+            CardRequestStatus.ISSUED,
+          );
+
+          return existingCard;
+        }
+
+        const card = this.cardIssuanceFactory.create(cardRequestPrimitives.id);
+        const createdCard = await this.cardRepository.create(card);
+
+        await this.cardRequestRepository.updateStatus(
+          cardRequestPrimitives.id,
+          CardRequestStatus.ISSUED,
+        );
+
+        return createdCard;
+      },
+    );
+
+    await this.publishIssuedCard(cardRequestPrimitives.id, cardToPublish);
   }
 
   private async publishIssuedCard(
@@ -74,11 +105,6 @@ export class ProcessCardRequestedEventUseCase {
     card: Awaited<ReturnType<CardProcessorRepositoryPort['create']>>,
   ): Promise<void> {
     const cardPrimitives = card.toPrimitives();
-
-    await this.cardRequestRepository.updateStatus(
-      requestId,
-      CardRequestStatus.ISSUED,
-    );
 
     await this.cardIssuedEventPublisher.publishIssued({
       requestId,
