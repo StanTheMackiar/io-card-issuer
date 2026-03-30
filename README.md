@@ -33,6 +33,12 @@ Variables principales:
 - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`: conexión a PostgreSQL.
 - `DB_SYNCHRONIZE`: sincronización automática de entidades.
 
+Tópicos Kafka usados por el flujo:
+
+- `io.card.requested.v1`: evento emitido por `card-issuer` cuando una solicitud de tarjeta fue registrada correctamente y queda pendiente de procesamiento.
+- `io.card.requested.v1.dlq`: evento enviado por `card-processor` cuando la solicitud agotó todos los reintentos de procesamiento y se deriva a la cola de error.
+- `io.cards.issued.v1`: evento emitido por `card-processor` cuando la tarjeta fue generada exitosamente y la solicitud queda en estado `issued`.
+
 Nota:
 Con `kafkajs@2.2.4` pueden aparecer warnings ruidosos al iniciar usando Node 24.x. Para desarrollo local de este reto se recomienda usar Node 20 LTS.
 
@@ -133,26 +139,33 @@ Respuesta esperada:
 npm run start:dev
 
 # ambas apps en runtime local
+# ejecuta build antes de arrancar
 npm run start
 
 # ambas apps desde dist
+# ejecuta build antes de arrancar
 npm run start:prod
 
 # solo issuer
 npm run start:issuer
 npm run start:issuer:dev
 npm run start:issuer:debug
+npm run build:issuer
 npm run start:issuer:prod
 
 # solo processor
 npm run start:processor
 npm run start:processor:dev
+npm run build:processor
 npm run start:processor:prod
 
 # compilación
 npm run build
 npm run build:issuer
 npm run build:processor
+
+# infraestructura + migraciones
+npm run db:setup
 
 # tests
 npm run test
