@@ -15,6 +15,7 @@ describe('ProcessCardRequestedEventUseCase', () => {
   beforeEach(() => {
     cardRequestRepository = {
       findById: jest.fn(),
+      registerProcessingFailure: jest.fn(),
       updateStatus: jest.fn(),
     };
 
@@ -50,6 +51,8 @@ describe('ProcessCardRequestedEventUseCase', () => {
         type: 'VISA',
         currency: 'PEN',
       },
+      lastProcessingError: null,
+      processingAttempts: 0,
       status: CardRequestStatus.PENDING,
       requestedAt: new Date('2025-01-01T00:00:00.000Z'),
       eventPublishedAt: new Date('2025-01-01T00:00:01.000Z'),
