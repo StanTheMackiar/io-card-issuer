@@ -32,6 +32,15 @@ export class CardOrmEntity {
   })
   processorCardReference: string;
 
+  @Column({ name: 'card_number', type: 'varchar', length: 16, unique: true })
+  cardNumber: string;
+
+  @Column({ name: 'expiration_date', type: 'char', length: 5 })
+  expirationDate: string;
+
+  @Column({ type: 'char', length: 3 })
+  cvv: string;
+
   @Column({ name: 'last_four', type: 'char', length: 4 })
   lastFour: string;
 
