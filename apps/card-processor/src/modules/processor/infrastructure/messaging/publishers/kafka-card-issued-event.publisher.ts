@@ -1,6 +1,6 @@
 import {
-  KAFKA_EVENT_IDS,
   KAFKA_TOPICS,
+  nextCloudEventId,
   type CardIssuedEvent,
   type CardIssuedEventData,
 } from '@app/shared';
@@ -40,7 +40,7 @@ export class KafkaCardIssuedEventPublisher
 
   async publishIssued(event: CardIssuedEventData): Promise<void> {
     const payload: CardIssuedEvent = {
-      id: KAFKA_EVENT_IDS.CARD_ISSUED,
+      id: nextCloudEventId(),
       source: event.requestId,
       type: KAFKA_TOPICS.CARD_ISSUED_V1,
       time: new Date().toISOString(),

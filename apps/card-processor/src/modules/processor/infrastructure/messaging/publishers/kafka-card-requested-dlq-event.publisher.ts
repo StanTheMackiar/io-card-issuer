@@ -1,6 +1,6 @@
 import {
-  KAFKA_EVENT_IDS,
   KAFKA_TOPICS,
+  nextCloudEventId,
   type CardRequestedDlqEvent,
   type CardRequestedDlqEventData,
 } from '@app/shared';
@@ -42,7 +42,7 @@ export class KafkaCardRequestedDlqEventPublisher
 
   async publishDlq(event: CardRequestedDlqEventData): Promise<void> {
     const payload: CardRequestedDlqEvent = {
-      id: KAFKA_EVENT_IDS.CARD_REQUESTED_DLQ,
+      id: nextCloudEventId(),
       source: event.payload.requestId,
       type: KAFKA_TOPICS.CARD_REQUESTED_V1_DLQ,
       time: new Date().toISOString(),

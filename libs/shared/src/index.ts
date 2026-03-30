@@ -11,7 +11,8 @@ export {
 } from './domain/entities/card-request';
 export { HealthModule } from './health/health.module';
 export { getKafkaConfigFromEnv } from './kafka/kafka.config';
-export { KAFKA_EVENT_IDS, KAFKA_TOPICS } from './kafka/kafka.constants';
+export { nextCloudEventId } from './kafka/cloud-event-id';
+export { KAFKA_TOPICS } from './kafka/kafka.constants';
 export type {
   CardIssuedEvent,
   CardIssuedEventData,
