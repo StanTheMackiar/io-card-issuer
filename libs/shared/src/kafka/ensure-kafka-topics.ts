@@ -18,9 +18,18 @@ export async function ensureKafkaTopics(
   await admin.connect();
 
   try {
+    const existingTopics = new Set(await admin.listTopics());
+    const missingTopics = options.topics.filter(
+      (topic) => !existingTopics.has(topic),
+    );
+
+    if (missingTopics.length === 0) {
+      return;
+    }
+
     await admin.createTopics({
       waitForLeaders: true,
-      topics: options.topics.map((topic) => ({
+      topics: missingTopics.map((topic) => ({
         topic,
         numPartitions: 1,
         replicationFactor: 1,

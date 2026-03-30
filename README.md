@@ -7,7 +7,7 @@ Monorepo con dos servicios NestJS:
 
 ## Requisitos
 
-- Node.js 20+
+- Node.js 20.x LTS recomendado
 - npm 10+
 - Docker
 - Docker Compose
@@ -32,6 +32,9 @@ Variables principales:
 - `PROCESSOR_PORT`: puerto de `card-processor`. Default `3001`.
 - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`: conexión a PostgreSQL.
 - `DB_SYNCHRONIZE`: sincronización automática de entidades.
+
+Nota:
+Con `kafkajs@2.2.4` pueden aparecer warnings ruidosos al iniciar usando Node 24.x. Para desarrollo local de este reto se recomienda usar Node 20 LTS.
 
 ### 3. Levantar PostgreSQL y Kafka
 

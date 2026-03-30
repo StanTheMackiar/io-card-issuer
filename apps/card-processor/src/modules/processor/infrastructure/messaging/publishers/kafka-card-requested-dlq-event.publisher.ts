@@ -1,5 +1,4 @@
 import {
-  ensureKafkaTopics,
   KAFKA_TOPICS,
   nextCloudEventId,
   type CardRequestedDlqEvent,
@@ -36,11 +35,6 @@ export class KafkaCardRequestedDlqEventPublisher
   }
 
   async onModuleInit(): Promise<void> {
-    await ensureKafkaTopics({
-      clientId: this.configService.getOrThrow<string>('kafka.clientId'),
-      brokers: this.configService.getOrThrow<string[]>('kafka.brokers'),
-      topics: [KAFKA_TOPICS.CARD_REQUESTED_V1_DLQ],
-    });
     await this.producer.connect();
   }
 

@@ -6,6 +6,7 @@ import { CARD_REQUEST_REPOSITORY } from './application/ports/card-request-reposi
 import { CreateCardRequestUseCase } from './application/use-cases/create-card-request.use-case';
 import { PublishPendingCardRequestEventsUseCase } from './application/use-cases/publish-pending-card-request-events.use-case';
 import { CardRequestsController } from './infrastructure/http/controllers/card-requests.controller';
+import { KafkaTopicsBootstrap } from './infrastructure/messaging/kafka-topics.bootstrap';
 import { KafkaCardRequestEventPublisher } from './infrastructure/messaging/publishers/kafka-card-request-event.publisher';
 import { CardRequestOrmRepository } from './infrastructure/persistence/repositories/card-request-typeorm.repository';
 import { CardRequestPublicationScheduler } from './infrastructure/scheduling/card-request-publication.scheduler';
@@ -17,6 +18,7 @@ import { CardRequestPublicationScheduler } from './infrastructure/scheduling/car
     CreateCardRequestUseCase,
     PublishPendingCardRequestEventsUseCase,
     CardRequestOrmRepository,
+    KafkaTopicsBootstrap,
     KafkaCardRequestEventPublisher,
     CardRequestPublicationScheduler,
     {

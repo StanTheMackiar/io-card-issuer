@@ -1,6 +1,5 @@
 import {
   CardRequestStatus,
-  ensureKafkaTopics,
   KAFKA_TOPICS,
   sleep,
   type CardRequestedDlqEventData,
@@ -51,11 +50,6 @@ export class CardRequestedConsumer implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleInit(): Promise<void> {
-    await ensureKafkaTopics({
-      clientId: this.configService.getOrThrow<string>('kafka.clientId'),
-      brokers: this.configService.getOrThrow<string[]>('kafka.brokers'),
-      topics: [KAFKA_TOPICS.CARD_REQUESTED_V1],
-    });
     await this.consumer.connect();
     await this.consumer.subscribe({
       topic: KAFKA_TOPICS.CARD_REQUESTED_V1,

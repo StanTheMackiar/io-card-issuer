@@ -10,6 +10,7 @@ import { CardIssuanceFactory } from './domain/services/card-issuance.factory';
 import { CardIssuedConsumer } from './infrastructure/messaging/consumers/card-issued.consumer';
 import { CardRequestedConsumer } from './infrastructure/messaging/consumers/card-requested.consumer';
 import { CardRequestedDlqConsumer } from './infrastructure/messaging/consumers/card-requested-dlq.consumer';
+import { KafkaTopicsBootstrap } from './infrastructure/messaging/kafka-topics.bootstrap';
 import { KafkaCardIssuedEventPublisher } from './infrastructure/messaging/publishers/kafka-card-issued-event.publisher';
 import { KafkaCardRequestedDlqEventPublisher } from './infrastructure/messaging/publishers/kafka-card-requested-dlq-event.publisher';
 import { CardRequestOrmRepository } from './infrastructure/persistence/repositories/card-processor-request-typeorm.repository';
@@ -23,6 +24,7 @@ import { CardOrmRepository } from './infrastructure/persistence/repositories/car
     CardIssuedConsumer,
     CardRequestedConsumer,
     CardRequestedDlqConsumer,
+    KafkaTopicsBootstrap,
     KafkaCardIssuedEventPublisher,
     KafkaCardRequestedDlqEventPublisher,
     CardRequestOrmRepository,
