@@ -35,6 +35,8 @@ export class CardRequestOrmRepository implements CardRequestRepositoryPort {
       eventPublishedAt: cardRequest.eventPublishedAt,
       eventPublishAttempts: cardRequest.eventPublishAttempts,
       lastPublishError: cardRequest.lastPublishError,
+      processingAttempts: cardRequest.processingAttempts,
+      lastProcessingError: cardRequest.lastProcessingError,
       processedAt: cardRequest.processedAt,
       createdAt: cardRequest.createdAt,
       updatedAt: cardRequest.updatedAt,
@@ -56,12 +58,27 @@ export class CardRequestOrmRepository implements CardRequestRepositoryPort {
   async updateStatus(
     requestId: string,
     status: CardRequestStatus,
+    lastProcessingError: string | null = null,
   ): Promise<void> {
     await this.repository.update(
       { id: requestId },
       {
         status,
+        lastProcessingError,
         processedAt: new Date(),
+      },
+    );
+  }
+
+  async registerProcessingFailure(
+    requestId: string,
+    errorMessage: string,
+  ): Promise<void> {
+    await this.repository.increment({ id: requestId }, 'processingAttempts', 1);
+    await this.repository.update(
+      { id: requestId },
+      {
+        lastProcessingError: errorMessage,
       },
     );
   }

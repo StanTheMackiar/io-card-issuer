@@ -24,6 +24,8 @@ type CardRequestProps = {
   eventPublishedAt: Date | null;
   eventPublishAttempts: number;
   lastPublishError: string | null;
+  processingAttempts: number;
+  lastProcessingError: string | null;
   processedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -51,6 +53,8 @@ export class CardRequest {
       eventPublishedAt: null,
       eventPublishAttempts: 0,
       lastPublishError: null,
+      processingAttempts: 0,
+      lastProcessingError: null,
       processedAt: null,
       createdAt: now,
       updatedAt: now,

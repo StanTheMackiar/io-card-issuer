@@ -93,6 +93,20 @@ export class CardRequestOrmEntity {
   })
   lastPublishError: string | null;
 
+  @Column({
+    name: 'processing_attempts',
+    type: 'integer',
+    default: 0,
+  })
+  processingAttempts: number;
+
+  @Column({
+    name: 'last_processing_error',
+    type: 'text',
+    nullable: true,
+  })
+  lastProcessingError: string | null;
+
   @Column({ name: 'processed_at', type: 'timestamptz', nullable: true })
   processedAt: Date | null;
 

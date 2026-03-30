@@ -1,4 +1,5 @@
 import {
+  CardRequestStatus,
   KAFKA_TOPICS,
   sleep,
   type CardRequestedDlqEventData,
@@ -13,6 +14,10 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Kafka, type Consumer } from 'kafkajs';
+import {
+  CARD_REQUEST_PROCESSOR_REPOSITORY,
+  type CardRequestRepositoryPort,
+} from '../../../application/ports/card-request-processor.repository.port';
 import {
   CARD_REQUESTED_DLQ_EVENT_PUBLISHER,
   type CardRequestedDlqEventPublisherPort,
@@ -30,6 +35,8 @@ export class CardRequestedConsumer implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly configService: ConfigService,
     private readonly processCardRequestedEventUseCase: ProcessCardRequestedEventUseCase,
+    @Inject(CARD_REQUEST_PROCESSOR_REPOSITORY)
+    private readonly cardRequestRepository: CardRequestRepositoryPort,
     @Inject(CARD_REQUESTED_DLQ_EVENT_PUBLISHER)
     private readonly cardRequestedDlqEventPublisher: CardRequestedDlqEventPublisherPort,
   ) {
@@ -76,7 +83,34 @@ export class CardRequestedConsumer implements OnModuleInit, OnModuleDestroy {
           this.logger.error(
             `Exhausted retries for requestId=${event.data.requestId}. Sending event to DLQ`,
           );
-          await this.publishToDlq(event.data, errorMessage);
+
+          try {
+            await this.publishToDlq(event.data, errorMessage);
+          } catch (dlqError: unknown) {
+            const dlqErrorMessage =
+              dlqError instanceof Error ? dlqError.message : String(dlqError);
+
+            this.logger.error(
+              `Failed to publish DLQ event for requestId=${event.data.requestId}: ${dlqErrorMessage}`,
+            );
+          }
+
+          try {
+            await this.cardRequestRepository.updateStatus(
+              event.data.requestId,
+              CardRequestStatus.REJECTED,
+              errorMessage,
+            );
+          } catch (statusError: unknown) {
+            const statusErrorMessage =
+              statusError instanceof Error
+                ? statusError.message
+                : String(statusError);
+
+            this.logger.error(
+              `Failed to mark requestId=${event.data.requestId} as rejected: ${statusErrorMessage}`,
+            );
+          }
 
           this.logger.error(
             `Failed to process card requested event: ${errorMessage}`,
@@ -106,14 +140,19 @@ export class CardRequestedConsumer implements OnModuleInit, OnModuleDestroy {
         return;
       } catch (error: unknown) {
         lastError = error;
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+
+        await this.cardRequestRepository.registerProcessingFailure(
+          event.requestId,
+          errorMessage,
+        );
 
         if (attempt === CardRequestedConsumer.maxRetryAttempts) {
           break;
         }
 
         const delayMs = CardRequestedConsumer.retryDelaysMs[attempt];
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
 
         this.logger.warn(
           `Retrying card request ${event.requestId} in ${delayMs}ms after failure: ${errorMessage}`,
