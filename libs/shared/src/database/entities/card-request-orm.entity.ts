@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -10,6 +11,13 @@ import { CardRequestStatus } from '../enums/card-request-status.enum';
 import { CardOrmEntity } from './card-orm.entity';
 
 @Entity({ name: 'card_requests' })
+@Index(
+  'UQ_card_requests_customer_document',
+  ['documentType', 'documentNumber'],
+  {
+    unique: true,
+  },
+)
 export class CardRequestOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;

@@ -1,4 +1,5 @@
 import { CardRequest, CardRequestStatus } from '@app/shared';
+import { CustomerAlreadyHasCardRequestError } from '../../domain/errors/customer-already-has-card-request.error';
 import type { CardRequestEventPublisherPort } from '../ports/card-request-event-publisher.port';
 import type { CardRequestRepositoryPort } from '../ports/card-request-repository.port';
 import { CreateCardRequestUseCase } from './create-card-request.use-case';
@@ -30,6 +31,7 @@ describe('CreateCardRequestUseCase', () => {
     const registerPublishFailure = jest.fn().mockResolvedValue(undefined);
     const repository: CardRequestRepositoryPort = {
       findByIdempotencyKey,
+      findByCustomerDocument: jest.fn().mockResolvedValue(null),
       create,
       findPendingEventPublications: jest.fn(),
       markEventPublished,
@@ -80,6 +82,7 @@ describe('CreateCardRequestUseCase', () => {
     const publishRequested = jest.fn();
     const repository: CardRequestRepositoryPort = {
       findByIdempotencyKey,
+      findByCustomerDocument: jest.fn(),
       create,
       findPendingEventPublications: jest.fn(),
       markEventPublished: jest.fn(),
@@ -103,6 +106,7 @@ describe('CreateCardRequestUseCase', () => {
     const publishRequested = jest.fn().mockResolvedValue(undefined);
     const repository: CardRequestRepositoryPort = {
       findByIdempotencyKey: jest.fn().mockResolvedValue(null),
+      findByCustomerDocument: jest.fn().mockResolvedValue(null),
       create: jest.fn((cardRequest: CardRequest) =>
         Promise.resolve(cardRequest),
       ),
@@ -134,6 +138,7 @@ describe('CreateCardRequestUseCase', () => {
     const markEventPublished = jest.fn();
     const repository: CardRequestRepositoryPort = {
       findByIdempotencyKey: jest.fn().mockResolvedValue(null),
+      findByCustomerDocument: jest.fn().mockResolvedValue(null),
       create: jest.fn((cardRequest: CardRequest) =>
         Promise.resolve(cardRequest),
       ),
@@ -164,6 +169,7 @@ describe('CreateCardRequestUseCase', () => {
     const registerPublishFailure = jest.fn().mockResolvedValue(undefined);
     const repository: CardRequestRepositoryPort = {
       findByIdempotencyKey: jest.fn().mockResolvedValue(null),
+      findByCustomerDocument: jest.fn().mockResolvedValue(null),
       create: jest.fn((cardRequest: CardRequest) =>
         Promise.resolve(cardRequest),
       ),
@@ -185,5 +191,39 @@ describe('CreateCardRequestUseCase', () => {
       expect.any(Date),
     );
     expect(registerPublishFailure).not.toHaveBeenCalled();
+  });
+
+  it('fails when the customer already has a card request with a different idempotency key', async () => {
+    const existingCardRequest = CardRequest.rehydrate({
+      id: 'request-2',
+      idempotencyKey: 'idem-previous',
+      customer: command.customer,
+      product: command.product,
+      status: CardRequestStatus.PENDING,
+      requestedAt: new Date('2026-03-26T10:00:00.000Z'),
+      eventPublishedAt: null,
+      eventPublishAttempts: 0,
+      lastPublishError: null,
+      processedAt: null,
+      createdAt: new Date('2026-03-26T10:00:00.000Z'),
+      updatedAt: new Date('2026-03-26T10:00:00.000Z'),
+    });
+    const repository: CardRequestRepositoryPort = {
+      findByIdempotencyKey: jest.fn().mockResolvedValue(null),
+      findByCustomerDocument: jest.fn().mockResolvedValue(existingCardRequest),
+      create: jest.fn(),
+      findPendingEventPublications: jest.fn(),
+      markEventPublished: jest.fn(),
+      registerPublishFailure: jest.fn(),
+    };
+    const publisher: CardRequestEventPublisherPort = {
+      publishRequested: jest.fn(),
+    };
+
+    const useCase = new CreateCardRequestUseCase(repository, publisher);
+
+    await expect(useCase.execute(command)).rejects.toBeInstanceOf(
+      CustomerAlreadyHasCardRequestError,
+    );
   });
 });

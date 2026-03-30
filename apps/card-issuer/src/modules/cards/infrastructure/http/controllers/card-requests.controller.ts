@@ -1,6 +1,7 @@
 import {
   Body,
   ClassSerializerInterceptor,
+  ConflictException,
   Controller,
   HttpCode,
   HttpStatus,
@@ -10,6 +11,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { CreateCardRequestUseCase } from '../../../application/use-cases/create-card-request.use-case';
+import { CustomerAlreadyHasCardRequestError } from '../../../domain/errors/customer-already-has-card-request.error';
 import { IdempotencyKey } from '../decorators/idempotency-key.decorator';
 import { CreateCardRequestDto } from '../requests/create-card-request.dto';
 import { CardRequestResponseDto } from '../responses/card-request.response.dto';
@@ -37,15 +39,23 @@ export class CardRequestsController {
       `Received card issue request with idempotencyKey=${idempotencyKey}`,
     );
 
-    const cardRequest = await this.createCardRequestUseCase.execute({
-      idempotencyKey,
-      ...body,
-    });
+    try {
+      const cardRequest = await this.createCardRequestUseCase.execute({
+        idempotencyKey,
+        ...body,
+      });
 
-    this.logger.log(
-      `Card issue request accepted with requestId=${cardRequest.id} and status=${cardRequest.status}`,
-    );
+      this.logger.log(
+        `Card issue request accepted with requestId=${cardRequest.id} and status=${cardRequest.status}`,
+      );
 
-    return cardRequest;
+      return cardRequest;
+    } catch (error: unknown) {
+      if (error instanceof CustomerAlreadyHasCardRequestError) {
+        throw new ConflictException(error.message);
+      }
+
+      throw error;
+    }
   }
 }

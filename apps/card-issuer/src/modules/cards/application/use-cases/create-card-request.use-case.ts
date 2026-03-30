@@ -10,6 +10,7 @@ import {
 } from '../ports/card-request-event-publisher.port';
 import type { CardRequestRepositoryPort } from '../ports/card-request-repository.port';
 import { CARD_REQUEST_REPOSITORY } from '../ports/card-request-repository.port';
+import { CustomerAlreadyHasCardRequestError } from '../../domain/errors/customer-already-has-card-request.error';
 
 @Injectable()
 export class CreateCardRequestUseCase {
@@ -30,6 +31,18 @@ export class CreateCardRequestUseCase {
 
     if (existingCardRequest) {
       return existingCardRequest.toPrimitives();
+    }
+
+    const existingCustomerCardRequest =
+      await this.cardRequestRepository.findByCustomerDocument(
+        command.customer.documentType,
+        command.customer.documentNumber,
+      );
+
+    if (existingCustomerCardRequest) {
+      throw new CustomerAlreadyHasCardRequestError(
+        command.customer.documentNumber,
+      );
     }
 
     const cardRequest = CardRequest.create(command);

@@ -9,6 +9,10 @@ export type PendingCardRequestPublication = {
 
 export interface CardRequestRepositoryPort {
   findByIdempotencyKey(idempotencyKey: string): Promise<CardRequest | null>;
+  findByCustomerDocument(
+    documentType: string,
+    documentNumber: string,
+  ): Promise<CardRequest | null>;
   create(cardRequest: CardRequest, forceError: boolean): Promise<CardRequest>;
   findPendingEventPublications(
     limit: number,

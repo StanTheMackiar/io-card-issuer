@@ -54,6 +54,24 @@ export class CardRequestOrmRepository implements CardRequestRepositoryPort {
     return this.rehydrate(entity);
   }
 
+  async findByCustomerDocument(
+    documentType: 'DNI',
+    documentNumber: string,
+  ): Promise<CardRequest | null> {
+    const entity = await this.repository.findOne({
+      where: {
+        documentType,
+        documentNumber,
+      },
+    });
+
+    if (!entity) {
+      return null;
+    }
+
+    return this.rehydrate(entity);
+  }
+
   async create(
     cardRequest: CardRequest,
     forceError: boolean,
