@@ -4,6 +4,7 @@ import {
   Controller,
   HttpCode,
   HttpStatus,
+  Logger,
   Post,
   SerializeOptions,
   UseInterceptors,
@@ -15,6 +16,8 @@ import { CardRequestResponseDto } from '../responses/card-request.response.dto';
 
 @Controller('cards')
 export class CardRequestsController {
+  private readonly logger = new Logger(CardRequestsController.name);
+
   constructor(
     private readonly createCardRequestUseCase: CreateCardRequestUseCase,
   ) {}
@@ -30,10 +33,18 @@ export class CardRequestsController {
     @IdempotencyKey() idempotencyKey: string,
     @Body() body: CreateCardRequestDto,
   ) {
+    this.logger.log(
+      `Received card issue request with idempotencyKey=${idempotencyKey}`,
+    );
+
     const cardRequest = await this.createCardRequestUseCase.execute({
       idempotencyKey,
       ...body,
     });
+
+    this.logger.log(
+      `Card issue request accepted with requestId=${cardRequest.id} and status=${cardRequest.status}`,
+    );
 
     return cardRequest;
   }

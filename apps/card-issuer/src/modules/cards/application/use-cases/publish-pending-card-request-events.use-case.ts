@@ -1,5 +1,5 @@
 import { type CardRequestedEventData } from '@app/shared';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import {
   CARD_REQUEST_EVENT_PUBLISHER,
   type CardRequestEventPublisherPort,
@@ -9,12 +9,14 @@ import {
   type CardRequestRepositoryPort,
 } from '../ports/card-request-repository.port';
 
+export type PublishPendingCardRequestEventsResult = {
+  pendingCount: number;
+  publishedCount: number;
+  failedCount: number;
+};
+
 @Injectable()
 export class PublishPendingCardRequestEventsUseCase {
-  private readonly logger = new Logger(
-    PublishPendingCardRequestEventsUseCase.name,
-  );
-
   constructor(
     @Inject(CARD_REQUEST_REPOSITORY)
     private readonly cardRequestRepository: CardRequestRepositoryPort,
@@ -22,9 +24,11 @@ export class PublishPendingCardRequestEventsUseCase {
     private readonly cardRequestEventPublisher: CardRequestEventPublisherPort,
   ) {}
 
-  async execute(limit: number): Promise<void> {
+  async execute(limit: number): Promise<PublishPendingCardRequestEventsResult> {
     const pendingPublications =
       await this.cardRequestRepository.findPendingEventPublications(limit);
+    let publishedCount = 0;
+    let failedCount = 0;
 
     for (const pendingPublication of pendingPublications) {
       const payload = pendingPublication.cardRequest.toPrimitives();
@@ -39,19 +43,22 @@ export class PublishPendingCardRequestEventsUseCase {
           payload.id,
           new Date(),
         );
+        publishedCount += 1;
       } catch (error: unknown) {
         const errorMessage =
           error instanceof Error ? error.message : String(error);
-
-        this.logger.warn(
-          `Failed to publish pending card request event for requestId=${payload.id}: ${errorMessage}`,
-        );
-
         await this.cardRequestRepository.registerPublishFailure(
           payload.id,
           errorMessage,
         );
+        failedCount += 1;
       }
     }
+
+    return {
+      pendingCount: pendingPublications.length,
+      publishedCount,
+      failedCount,
+    };
   }
 }

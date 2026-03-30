@@ -4,7 +4,12 @@ import {
   type CardRequestedDlqEvent,
   type CardRequestedDlqEventData,
 } from '@app/shared';
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Kafka, type Producer } from 'kafkajs';
 import { CardRequestedDlqEventPublisherPort } from '../../../application/ports/card-requested-dlq-event-publisher.port';
@@ -13,6 +18,9 @@ import { CardRequestedDlqEventPublisherPort } from '../../../application/ports/c
 export class KafkaCardRequestedDlqEventPublisher
   implements CardRequestedDlqEventPublisherPort, OnModuleInit, OnModuleDestroy
 {
+  private readonly logger = new Logger(
+    KafkaCardRequestedDlqEventPublisher.name,
+  );
   private readonly producer: Producer;
 
   constructor(private readonly configService: ConfigService) {
@@ -41,6 +49,10 @@ export class KafkaCardRequestedDlqEventPublisher
       data: event,
     };
 
+    this.logger.warn(
+      `Publishing CardRequested DLQ event for requestId=${event.payload.requestId} after ${event.attempts} attempts`,
+    );
+
     await this.producer.send({
       topic: KAFKA_TOPICS.CARD_REQUESTED_V1_DLQ,
       messages: [
@@ -50,5 +62,9 @@ export class KafkaCardRequestedDlqEventPublisher
         },
       ],
     });
+
+    this.logger.warn(
+      `Published CardRequested DLQ event for requestId=${event.payload.requestId}`,
+    );
   }
 }

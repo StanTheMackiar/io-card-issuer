@@ -27,7 +27,16 @@ export class CardRequestPublicationScheduler {
       const batchSize = this.configService.getOrThrow<number>(
         'kafka.cardRequestRetryBatchSize',
       );
-      await this.publishPendingCardRequestEventsUseCase.execute(batchSize);
+      const result =
+        await this.publishPendingCardRequestEventsUseCase.execute(batchSize);
+
+      if (result.pendingCount === 0) {
+        return;
+      }
+
+      this.logger.log(
+        `Card request publication tick processed ${result.pendingCount} pending requests: ${result.publishedCount} published, ${result.failedCount} failed`,
+      );
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);

@@ -60,12 +60,22 @@ export class CardRequestedConsumer implements OnModuleInit, OnModuleDestroy {
           message.value.toString(),
         ) as CardRequestedEvent;
 
+        this.logger.log(
+          `Received card requested event for requestId=${event.data.requestId}`,
+        );
+
         try {
           await this.processWithRetry(event.data);
+          this.logger.log(
+            `Processed card requested event successfully for requestId=${event.data.requestId}`,
+          );
         } catch (error: unknown) {
           const errorMessage =
             error instanceof Error ? error.message : String(error);
 
+          this.logger.error(
+            `Exhausted retries for requestId=${event.data.requestId}. Sending event to DLQ`,
+          );
           await this.publishToDlq(event.data, errorMessage);
 
           this.logger.error(
