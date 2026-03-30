@@ -15,7 +15,7 @@ describe('ProcessCardRequestedEventUseCase', () => {
   let cardRequestRepository: jest.Mocked<CardRequestRepositoryPort>;
   let cardRepository: jest.Mocked<CardProcessorRepositoryPort>;
   let cardIssuedEventPublisher: jest.Mocked<CardIssuedEventPublisherPort>;
-  let transactionManager: jest.Mocked<TransactionManagerPort>;
+  let transactionManager: TransactionManagerPort;
   let useCase: ProcessCardRequestedEventUseCase;
 
   beforeEach(() => {
@@ -32,6 +32,10 @@ describe('ProcessCardRequestedEventUseCase', () => {
 
     cardIssuedEventPublisher = {
       publishIssued: jest.fn(),
+    };
+
+    transactionManager = {
+      runInTransaction: async <T>(work: () => Promise<T>) => work(),
     };
 
     useCase = new ProcessCardRequestedEventUseCase(
