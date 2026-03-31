@@ -28,7 +28,8 @@ import { ProcessCardRequestedEventUseCase } from '../../../application/use-cases
 export class CardRequestedConsumer implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(CardRequestedConsumer.name);
   private static readonly retryDelaysMs = [1000, 2000, 4000] as const;
-  private static readonly maxRetryAttempts = 3;
+  private static readonly maxProcessingAttempts =
+    CardRequestedConsumer.retryDelaysMs.length + 1;
   private readonly consumer: Consumer;
 
   constructor(
@@ -130,7 +131,7 @@ export class CardRequestedConsumer implements OnModuleInit, OnModuleDestroy {
 
     for (
       let attempt = 1;
-      attempt <= CardRequestedConsumer.maxRetryAttempts;
+      attempt <= CardRequestedConsumer.maxProcessingAttempts;
       attempt += 1
     ) {
       try {
@@ -150,7 +151,7 @@ export class CardRequestedConsumer implements OnModuleInit, OnModuleDestroy {
           errorMessage,
         );
 
-        if (attempt === CardRequestedConsumer.maxRetryAttempts) {
+        if (attempt === CardRequestedConsumer.maxProcessingAttempts) {
           break;
         }
 
@@ -173,7 +174,7 @@ export class CardRequestedConsumer implements OnModuleInit, OnModuleDestroy {
   ): Promise<void> {
     const dlqEvent: CardRequestedDlqEventData = {
       reason,
-      attempts: CardRequestedConsumer.maxRetryAttempts,
+      attempts: CardRequestedConsumer.maxProcessingAttempts,
       payload: event,
     };
 
